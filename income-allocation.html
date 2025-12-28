@@ -49,6 +49,21 @@
             padding: 30px;
         }
 
+        .philosophy-section {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .philosophy-section p {
+            color: #555;
+            line-height: 1.6;
+            margin: 0;
+            font-size: 1em;
+        }
+
         .income-section {
             margin-bottom: 30px;
             padding: 20px;
@@ -362,6 +377,10 @@
         </header>
 
         <div class="content">
+            <div class="philosophy-section">
+                <p>By consciously allocating your income across these four essential categories, you create a balanced financial life that sets you up for long-term success. This approach gives you the freedom to spend guilt-free on what you love today, while automatically building the future you want—no restrictive budgeting required.</p>
+            </div>
+
             <div class="income-section">
                 <div class="tax-toggle-wrapper">
                     <div class="tax-toggle-option active" id="postTaxOption" onclick="allocator.setTaxType('post-tax')">
@@ -379,7 +398,7 @@
                             <option value="monthly">Monthly</option>
                             <option value="annual">Annual</option>
                         </select>
-                        <input type="number" id="income" value="5000" min="0" step="100" placeholder="Enter amount">
+                        <input type="text" id="income" value="5000.00" placeholder="Enter amount">
                     </div>
                 </div>
 
@@ -539,7 +558,12 @@
                 }
 
                 // Add event listeners
-                this.incomeInput.addEventListener('input', () => this.calculate());
+                this.incomeInput.addEventListener('input', () => {
+                    this.formatIncomeInput();
+                    this.calculate();
+                });
+                this.incomeInput.addEventListener('focus', () => this.handleIncomeFocus());
+                this.incomeInput.addEventListener('blur', () => this.handleIncomeBlur());
                 this.incomeFrequency.addEventListener('change', () => this.calculate());
                 this.zipCodeInput.addEventListener('input', () => this.calculate());
 
@@ -550,8 +574,46 @@
                     });
                 }
 
-                // Initial calculation
+                // Format initial value and calculate
+                this.handleIncomeBlur();
                 this.calculate();
+            }
+
+            handleIncomeFocus() {
+                // Remove formatting when user focuses to make editing easier
+                const value = this.parseIncomeValue(this.incomeInput.value);
+                if (value > 0) {
+                    this.incomeInput.value = value.toFixed(2);
+                }
+            }
+
+            handleIncomeBlur() {
+                // Format with currency when user leaves the field
+                const value = this.parseIncomeValue(this.incomeInput.value);
+                if (value >= 0) {
+                    this.incomeInput.value = this.formatCurrencyInput(value);
+                }
+            }
+
+            formatIncomeInput() {
+                // Real-time formatting as user types (optional, can be removed if too intrusive)
+                // For now, we'll just ensure valid numeric input
+                let value = this.incomeInput.value.replace(/[^0-9.]/g, '');
+                const parts = value.split('.');
+                if (parts.length > 2) {
+                    value = parts[0] + '.' + parts.slice(1).join('');
+                }
+            }
+
+            parseIncomeValue(value) {
+                // Remove all non-numeric characters except decimal point
+                const cleaned = value.replace(/[^0-9.]/g, '');
+                return parseFloat(cleaned) || 0;
+            }
+
+            formatCurrencyInput(value) {
+                // Format as currency with commas and 2 decimal places
+                return '$' + value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             }
 
             setTaxType(type) {
@@ -624,7 +686,7 @@
             }
 
             getMonthlyIncome() {
-                const income = parseFloat(this.incomeInput.value) || 0;
+                const income = this.parseIncomeValue(this.incomeInput.value);
                 const frequency = this.incomeFrequency.value;
 
                 let monthlyGross = frequency === 'monthly' ? income : income / 12;
