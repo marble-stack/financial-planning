@@ -548,6 +548,9 @@
     <script>
         class IncomeAllocator {
             constructor() {
+                // Define category order (top to bottom on page)
+                this.categoryOrder = ['fixedCosts', 'shortTerm', 'longTerm', 'guiltFree'];
+
                 this.categories = {
                     fixedCosts: { slider: null, percent: null, monthly: null, annual: null, value: 50 },
                     shortTerm: { slider: null, percent: null, monthly: null, annual: null, value: 20 },
@@ -760,47 +763,66 @@
 
                 if (difference === 0) return;
 
-                // Get other categories (not the one being changed)
-                const otherCategories = Object.keys(this.categories).filter(k => k !== changedKey);
+                // Update the changed category
+                this.categories[changedKey].value = newValue;
 
-                // Calculate total of other categories
-                let otherTotal = 0;
-                for (const key of otherCategories) {
-                    otherTotal += this.categories[key].value;
+                // Get the index of the changed category
+                const changedIndex = this.categoryOrder.indexOf(changedKey);
+
+                // Get categories below the changed one
+                const categoriesBelow = this.categoryOrder.slice(changedIndex + 1);
+
+                // If there are no categories below, we can't auto-balance
+                if (categoriesBelow.length === 0) {
+                    this.calculate();
+                    return;
                 }
 
-                // Distribute the difference proportionally among other categories
-                if (otherTotal > 0) {
-                    let remainingDifference = difference;
+                // Calculate total of categories below
+                let totalBelow = 0;
+                for (const key of categoriesBelow) {
+                    totalBelow += this.categories[key].value;
+                }
 
-                    for (let i = 0; i < otherCategories.length; i++) {
-                        const key = otherCategories[i];
-                        const isLast = i === otherCategories.length - 1;
+                // Calculate what the total should be for categories below
+                // Total should be 100 - all categories above (including the changed one)
+                let totalAboveAndCurrent = 0;
+                for (let i = 0; i <= changedIndex; i++) {
+                    totalAboveAndCurrent += this.categories[this.categoryOrder[i]].value;
+                }
+
+                const targetTotalBelow = 100 - totalAboveAndCurrent;
+
+                // Adjust categories below proportionally to hit the target
+                if (totalBelow > 0) {
+                    // Distribute proportionally
+                    let remainingToDistribute = targetTotalBelow;
+
+                    for (let i = 0; i < categoriesBelow.length; i++) {
+                        const key = categoriesBelow[i];
+                        const isLast = i === categoriesBelow.length - 1;
 
                         if (isLast) {
-                            // For the last category, use the remaining difference to avoid rounding errors
-                            this.categories[key].value = Math.max(0, Math.min(100, this.categories[key].value - remainingDifference));
+                            // Give the remainder to the last category
+                            this.categories[key].value = Math.max(0, Math.min(100, remainingToDistribute));
                         } else {
-                            // Proportional adjustment
-                            const proportion = this.categories[key].value / otherTotal;
-                            const adjustment = Math.round(difference * proportion);
-                            this.categories[key].value = Math.max(0, Math.min(100, this.categories[key].value - adjustment));
-                            remainingDifference -= adjustment;
+                            // Proportional distribution
+                            const proportion = this.categories[key].value / totalBelow;
+                            const newCategoryValue = Math.round(targetTotalBelow * proportion);
+                            this.categories[key].value = Math.max(0, Math.min(100, newCategoryValue));
+                            remainingToDistribute -= this.categories[key].value;
                         }
                     }
                 } else {
-                    // If all other categories are 0, distribute evenly
-                    const splitAmount = Math.floor((100 - newValue) / otherCategories.length);
-                    let remainder = (100 - newValue) % otherCategories.length;
+                    // If all categories below are 0, distribute evenly
+                    const splitAmount = Math.floor(targetTotalBelow / categoriesBelow.length);
+                    let remainder = targetTotalBelow % categoriesBelow.length;
 
-                    for (const key of otherCategories) {
+                    for (const key of categoriesBelow) {
                         this.categories[key].value = splitAmount + (remainder > 0 ? 1 : 0);
                         if (remainder > 0) remainder--;
                     }
                 }
-
-                // Update the changed category
-                this.categories[changedKey].value = newValue;
 
                 // Recalculate and update display
                 this.calculate();
