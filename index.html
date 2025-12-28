@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Monte Carlo retirement planning simulator with life events modeling. Calculate your retirement success rate using probabilistic simulations.">
     <title>Monte Carlo Retirement Projection Simulator</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
@@ -182,6 +183,42 @@
             color: #888;
             margin-top: 8px;
             line-height: 1.4;
+        }
+
+        /* 508 Compliance - Focus indicators */
+        button:focus,
+        input:focus,
+        select:focus {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #667eea;
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Screen reader only content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
         }
 
         .chart-container {
@@ -409,13 +446,14 @@
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="container">
-        <header>
+        <header role="banner">
             <h1>Monte Carlo Retirement Projection Simulator</h1>
             <p>Probabilistic retirement planning based on 10,000+ simulations</p>
         </header>
 
-        <div class="content">
+        <main id="main-content" role="main" class="content">
             <div class="input-section">
                 <div class="input-group">
                     <label for="currentAge">Current Age</label>
@@ -475,32 +513,32 @@
 
             <!-- Life Events Section -->
             <div class="life-events-section">
-                <button class="toggle-events-btn" id="toggleEvents">
-                    <span>📅</span> Add Life Events (College, Kids, Home Purchase, etc.)
-                    <span class="arrow">▼</span>
+                <button class="toggle-events-btn" id="toggleEvents" aria-expanded="false" aria-controls="eventsPanel">
+                    <span aria-hidden="true">📅</span> Add Life Events (College, Kids, Home Purchase, etc.)
+                    <span class="arrow" aria-hidden="true">▼</span>
                 </button>
 
-                <div class="events-panel" id="eventsPanel">
+                <div class="events-panel" id="eventsPanel" aria-labelledby="toggleEvents">
                     <p class="events-description">
                         Model major life expenses and income changes like having children, college costs,
                         home purchases, inheritances, or part-time retirement income.
                     </p>
 
                     <div class="events-controls">
-                        <button class="add-event-btn" id="addEvent">+ Add Event</button>
+                        <button class="add-event-btn" id="addEvent" aria-label="Add a new life event">+ Add Event</button>
                     </div>
 
-                    <div id="eventsList" class="events-list"></div>
+                    <div id="eventsList" class="events-list" role="list"></div>
                 </div>
             </div>
 
             <div class="button-container">
-                <button id="runSimulation">Run Simulation</button>
+                <button id="runSimulation" aria-label="Run Monte Carlo simulation with current parameters">Run Simulation</button>
             </div>
 
-            <div class="progress" id="progress"></div>
+            <div class="progress" id="progress" role="status" aria-live="polite" aria-atomic="true"></div>
 
-            <div class="results" id="results">
+            <div class="results" id="results" role="region" aria-label="Simulation results">
                 <div class="stats-grid">
                     <div class="stat-card success">
                         <h3>Success Rate</h3>
@@ -527,20 +565,20 @@
                 <div class="chart-container">
                     <h3>Distribution of Ending Balances (Inflation-Adjusted)</h3>
                     <div class="chart-wrapper">
-                        <canvas id="histogramChart"></canvas>
+                        <canvas id="histogramChart" role="img" aria-label="Histogram showing distribution of ending portfolio balances across all simulations"></canvas>
                     </div>
                 </div>
 
                 <div class="chart-container">
                     <h3>Sample Portfolio Paths (30 Random Simulations)</h3>
                     <div class="chart-wrapper">
-                        <canvas id="pathsChart"></canvas>
+                        <canvas id="pathsChart" role="img" aria-label="Line chart showing 30 sample portfolio trajectory paths from current age through retirement"></canvas>
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
 
-        <footer>
+        <footer role="contentinfo">
             <strong>Disclaimer:</strong> This tool is for educational purposes only and does not constitute financial advice.
             Actual investment returns vary and past performance does not guarantee future results.
             Please consult with a qualified financial advisor for personalized retirement planning.
@@ -839,8 +877,9 @@
             toggleEventsPanel() {
                 const panel = document.getElementById('eventsPanel');
                 const button = document.getElementById('toggleEvents');
-                panel.classList.toggle('show');
+                const isExpanded = panel.classList.toggle('show');
                 button.classList.toggle('active');
+                button.setAttribute('aria-expanded', isExpanded);
             }
 
             addLifeEvent(eventData = {}) {
@@ -878,31 +917,32 @@
                 events.forEach(event => {
                     const eventItem = document.createElement('div');
                     eventItem.className = 'event-item';
+                    eventItem.setAttribute('role', 'listitem');
                     eventItem.innerHTML = `
                         <div class="event-field">
-                            <label>Type</label>
-                            <select data-id="${event.id}" data-field="type">
+                            <label for="event-type-${event.id}">Type</label>
+                            <select id="event-type-${event.id}" data-id="${event.id}" data-field="type" aria-label="Event type">
                                 <option value="expense" ${event.type === 'expense' ? 'selected' : ''}>Expense</option>
                                 <option value="income" ${event.type === 'income' ? 'selected' : ''}>Income</option>
                             </select>
                         </div>
                         <div class="event-field">
-                            <label>Name</label>
-                            <input type="text" placeholder="e.g., College costs" value="${event.name}" data-id="${event.id}" data-field="name">
+                            <label for="event-name-${event.id}">Name</label>
+                            <input id="event-name-${event.id}" type="text" placeholder="e.g., College costs" value="${event.name}" data-id="${event.id}" data-field="name" aria-label="Event name">
                         </div>
                         <div class="event-field">
-                            <label>Annual Amount ($)</label>
-                            <input type="number" placeholder="0" value="${event.amount}" min="0" step="1000" data-id="${event.id}" data-field="amount">
+                            <label for="event-amount-${event.id}">Annual Amount ($)</label>
+                            <input id="event-amount-${event.id}" type="number" placeholder="0" value="${event.amount}" min="0" step="1000" data-id="${event.id}" data-field="amount" aria-label="Annual amount in dollars">
                         </div>
                         <div class="event-field">
-                            <label>Start Age</label>
-                            <input type="number" placeholder="35" value="${event.startAge}" min="18" max="120" data-id="${event.id}" data-field="startAge">
+                            <label for="event-age-${event.id}">Start Age</label>
+                            <input id="event-age-${event.id}" type="number" placeholder="35" value="${event.startAge}" min="18" max="120" data-id="${event.id}" data-field="startAge" aria-label="Starting age">
                         </div>
                         <div class="event-field">
-                            <label>Duration (years)</label>
-                            <input type="number" placeholder="1" value="${event.duration}" min="1" max="50" data-id="${event.id}" data-field="duration">
+                            <label for="event-duration-${event.id}">Duration (years)</label>
+                            <input id="event-duration-${event.id}" type="number" placeholder="1" value="${event.duration}" min="1" max="50" data-id="${event.id}" data-field="duration" aria-label="Duration in years">
                         </div>
-                        <button class="delete-event-btn" data-id="${event.id}">×</button>
+                        <button class="delete-event-btn" data-id="${event.id}" aria-label="Delete ${event.name || 'this event'}">×</button>
                     `;
 
                     // Add event listeners to inputs
@@ -1102,11 +1142,13 @@
                     return {
                         label: `Simulation ${index + 1}`,
                         data: path.map(p => ({ x: p.age, y: p.balance })),
-                        borderColor: `hsla(${(index * 360) / paths.length}, 70%, 50%, 0.4)`,
+                        borderColor: `hsla(${(index * 360) / paths.length}, 70%, 50%, 0.25)`,
                         backgroundColor: 'transparent',
                         borderWidth: 1.5,
                         pointRadius: 0,
-                        tension: 0.1
+                        tension: 0.1,
+                        pointHitRadius: 5,
+                        pointHoverRadius: 3
                     };
                 });
 
@@ -1123,12 +1165,22 @@
                                 display: false
                             },
                             tooltip: {
-                                mode: 'nearest',
-                                intersect: false,
+                                mode: 'point',
+                                intersect: true,
+                                filter: function(tooltipItem, data) {
+                                    // Only show tooltip for the nearest line
+                                    return true;
+                                },
                                 callbacks: {
+                                    title: function(context) {
+                                        return `Age ${Math.round(context[0].parsed.x)}`;
+                                    },
                                     label: function(context) {
-                                        return 'Balance: ' + this.formatCurrency(context.parsed.y);
+                                        return `${context.dataset.label}: ${this.formatCurrency(context.parsed.y)}`;
                                     }.bind(this)
+                                },
+                                itemSort: function(a, b) {
+                                    return 0; // Only show one item
                                 }
                             }
                         },
@@ -1156,9 +1208,8 @@
                             }
                         },
                         interaction: {
-                            mode: 'nearest',
-                            axis: 'x',
-                            intersect: false
+                            mode: 'point',
+                            intersect: true
                         }
                     }
                 });
