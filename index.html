@@ -190,6 +190,47 @@
             line-height: 1.5;
         }
 
+        /* Navigation Tabs */
+        .nav-tabs {
+            max-width: 1200px;
+            margin: 0 auto 20px;
+            display: flex;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 16px 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #666;
+            font-weight: 600;
+            font-size: 0.95em;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            background: transparent;
+        }
+
+        .nav-tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .nav-tab-icon {
+            display: block;
+            font-size: 1.4em;
+            margin-bottom: 4px;
+        }
+
         /* 508 Compliance - Focus indicators */
         button:focus,
         input:focus,
