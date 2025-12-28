@@ -372,6 +372,67 @@
             text-decoration: underline;
         }
 
+        /* Accessibility: Skip link for keyboard navigation */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            z-index: 100;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 0 0 4px 0;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Accessibility: Screen reader only text */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Accessibility: Enhanced focus styles */
+        *:focus {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        *:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        *:focus-visible {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .tax-toggle-option:focus-visible {
+            outline: 3px solid #333;
+            outline-offset: 2px;
+        }
+
+        .preset-btn:focus-visible {
+            outline: 3px solid #333;
+            outline-offset: 2px;
+        }
+
+        .allocation-box:focus-visible {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+
         @media (max-width: 768px) {
             header h1 {
                 font-size: 1.5em;
@@ -396,154 +457,170 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="container" role="document">
+        <header role="banner">
             <h1>Income Allocation Calculator</h1>
             <p>Based on Ramit Sethi's "I Will Teach You to Be Rich"</p>
         </header>
 
-        <div class="content">
-            <div class="philosophy-section">
+        <main id="main-content" class="content" role="main">
+            <section class="philosophy-section" aria-label="Philosophy">
                 <p>By consciously allocating your income across fixed costs, short-term saving/investing, long-term saving/investing, and guilt-free spending, you create a balanced financial life that sets you up for long-term success. This approach gives you the freedom to spend guilt-free on what you love today, while automatically building the future you want—no restrictive budgeting required.</p>
-            </div>
+            </section>
 
-            <div class="income-section">
-                <div class="tax-toggle-wrapper">
-                    <div class="tax-toggle-option active" id="postTaxOption" onclick="allocator.setTaxType('post-tax')">
+            <section class="income-section" aria-labelledby="income-section-heading">
+                <h2 id="income-section-heading" class="sr-only">Income Configuration</h2>
+
+                <div class="tax-toggle-wrapper" role="group" aria-label="Income type selection">
+                    <button type="button" class="tax-toggle-option active" id="postTaxOption" onclick="allocator.setTaxType('post-tax')" aria-pressed="true">
                         Post-Tax Income
-                    </div>
-                    <div class="tax-toggle-option" id="preTaxOption" onclick="allocator.setTaxType('pre-tax')">
+                    </button>
+                    <button type="button" class="tax-toggle-option" id="preTaxOption" onclick="allocator.setTaxType('pre-tax')" aria-pressed="false">
                         Pre-Tax Income
-                    </div>
+                    </button>
                 </div>
 
                 <div class="income-input-group">
                     <label for="income">Your Income</label>
                     <div class="income-input-wrapper">
-                        <select id="incomeFrequency">
+                        <label for="incomeFrequency" class="sr-only">Income frequency</label>
+                        <select id="incomeFrequency" aria-label="Income frequency">
                             <option value="monthly">Monthly</option>
                             <option value="annual">Annual</option>
                         </select>
-                        <input type="text" id="income" value="5000.00" placeholder="Enter amount">
+                        <input type="text" id="income" name="income" autocomplete="transaction-amount" value="5000.00" placeholder="Enter amount" aria-describedby="income-help">
+                        <span id="income-help" class="sr-only">Enter your income amount in dollars</span>
                     </div>
                 </div>
 
-                <div class="tax-fields" id="taxFields">
+                <div class="tax-fields" id="taxFields" aria-live="polite">
                     <div class="income-input-group">
                         <label for="zipCode">ZIP Code (for tax estimation)</label>
-                        <input type="text" id="zipCode" name="postal-code" autocomplete="postal-code" inputmode="numeric" placeholder="e.g., 94102" maxlength="5" pattern="[0-9]{5}">
+                        <input type="text" id="zipCode" name="postal-code" autocomplete="postal-code" inputmode="numeric" placeholder="e.g., 94102" maxlength="5" pattern="[0-9]{5}" aria-describedby="zipcode-help">
+                        <span id="zipcode-help" class="sr-only">Enter your 5-digit ZIP code for state tax estimation</span>
                     </div>
-                    <div class="tax-estimate" id="taxEstimate"></div>
+                    <div class="tax-estimate" id="taxEstimate" role="status" aria-live="polite" aria-atomic="true"></div>
                 </div>
-            </div>
+            </section>
 
-            <div class="preset-buttons">
-                <button class="preset-btn" onclick="applyPreset('balanced')">Balanced (50/20/20/10)</button>
-                <button class="preset-btn" onclick="applyPreset('aggressive-saver')">Aggressive Saver (50/15/30/5)</button>
-                <button class="preset-btn" onclick="applyPreset('debt-crusher')">Debt Crusher (60/20/15/5)</button>
-            </div>
+            <section class="preset-buttons" role="group" aria-label="Allocation presets">
+                <h2 class="sr-only">Quick Preset Options</h2>
+                <button type="button" class="preset-btn" onclick="applyPreset('balanced')" aria-describedby="balanced-desc">Balanced (50/20/20/10)</button>
+                <span id="balanced-desc" class="sr-only">Fixed costs 50%, Short-term savings 20%, Long-term savings 20%, Guilt-free spending 10%</span>
+                <button type="button" class="preset-btn" onclick="applyPreset('aggressive-saver')" aria-describedby="aggressive-desc">Aggressive Saver (50/15/30/5)</button>
+                <span id="aggressive-desc" class="sr-only">Fixed costs 50%, Short-term savings 15%, Long-term savings 30%, Guilt-free spending 5%</span>
+                <button type="button" class="preset-btn" onclick="applyPreset('debt-crusher')" aria-describedby="debt-desc">Debt Crusher (60/20/15/5)</button>
+                <span id="debt-desc" class="sr-only">Fixed costs 60%, Short-term savings 20%, Long-term savings 15%, Guilt-free spending 5%</span>
+            </section>
 
-            <div class="categories-section">
-                <h2>Adjust Your Allocations</h2>
+            <section class="categories-section" aria-labelledby="categories-heading">
+                <h2 id="categories-heading">Adjust Your Allocations</h2>
 
-                <div class="category-item fixed-costs">
+                <article class="category-item fixed-costs" aria-labelledby="fixedCosts-title" role="region">
                     <div class="category-header">
-                        <div class="category-title">Fixed Costs</div>
-                        <div class="category-percentage"><span id="fixedCostsPercent">50</span>%</div>
+                        <h3 class="category-title" id="fixedCosts-title">Fixed Costs</h3>
+                        <div class="category-percentage" aria-live="polite"><span id="fixedCostsPercent">50</span>%</div>
                     </div>
-                    <div class="category-description">
+                    <p class="category-description" id="fixedCosts-desc">
                         Essential expenses like rent/mortgage, utilities, insurance, car payments, minimum debt payments
-                    </div>
+                    </p>
                     <div class="slider-container">
-                        <input type="range" min="0" max="100" value="50" class="slider" id="fixedCostsSlider">
+                        <label for="fixedCostsSlider" class="sr-only">Fixed costs allocation percentage</label>
+                        <input type="range" min="0" max="100" value="50" class="slider" id="fixedCostsSlider" aria-describedby="fixedCosts-desc" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50 percent">
                     </div>
-                    <div class="allocation-display">
-                        <div class="allocation-box">
-                            <div class="allocation-label">Monthly</div>
-                            <div class="allocation-amount" id="fixedCostsMonthly">$2,500</div>
+                    <div class="allocation-display" role="group" aria-label="Fixed costs allocation amounts">
+                        <div class="allocation-box" tabindex="0" role="button" aria-label="Edit monthly fixed costs allocation">
+                            <div class="allocation-label" id="fixedCostsMonthly-label">Monthly</div>
+                            <div class="allocation-amount" id="fixedCostsMonthly" aria-labelledby="fixedCostsMonthly-label" aria-live="polite">$2,500</div>
                         </div>
-                        <div class="allocation-box">
-                            <div class="allocation-label">Annual</div>
-                            <div class="allocation-amount" id="fixedCostsAnnual">$30,000</div>
+                        <div class="allocation-box" tabindex="0" role="button" aria-label="Edit annual fixed costs allocation">
+                            <div class="allocation-label" id="fixedCostsAnnual-label">Annual</div>
+                            <div class="allocation-amount" id="fixedCostsAnnual" aria-labelledby="fixedCostsAnnual-label" aria-live="polite">$30,000</div>
                         </div>
                     </div>
-                </div>
+                </article>
 
-                <div class="category-item short-term">
+                <article class="category-item short-term" aria-labelledby="shortTerm-title" role="region">
                     <div class="category-header">
-                        <div class="category-title">Short-Term Savings</div>
-                        <div class="category-percentage"><span id="shortTermPercent">20</span>%</div>
+                        <h3 class="category-title" id="shortTerm-title">Short-Term Savings</h3>
+                        <div class="category-percentage" aria-live="polite"><span id="shortTermPercent">20</span>%</div>
                     </div>
-                    <div class="category-description">
+                    <p class="category-description" id="shortTerm-desc">
                         Emergency fund, vacation fund, upcoming purchases, short-term goals
-                    </div>
+                    </p>
                     <div class="slider-container">
-                        <input type="range" min="0" max="100" value="20" class="slider" id="shortTermSlider">
+                        <label for="shortTermSlider" class="sr-only">Short-term savings allocation percentage</label>
+                        <input type="range" min="0" max="100" value="20" class="slider" id="shortTermSlider" aria-describedby="shortTerm-desc" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20" aria-valuetext="20 percent">
                     </div>
-                    <div class="allocation-display">
-                        <div class="allocation-box">
-                            <div class="allocation-label">Monthly</div>
-                            <div class="allocation-amount" id="shortTermMonthly">$1,000</div>
+                    <div class="allocation-display" role="group" aria-label="Short-term savings allocation amounts">
+                        <div class="allocation-box" tabindex="0" role="button" aria-label="Edit monthly short-term savings allocation">
+                            <div class="allocation-label" id="shortTermMonthly-label">Monthly</div>
+                            <div class="allocation-amount" id="shortTermMonthly" aria-labelledby="shortTermMonthly-label" aria-live="polite">$1,000</div>
                         </div>
-                        <div class="allocation-box">
-                            <div class="allocation-label">Annual</div>
-                            <div class="allocation-amount" id="shortTermAnnual">$12,000</div>
+                        <div class="allocation-box" tabindex="0" role="button" aria-label="Edit annual short-term savings allocation">
+                            <div class="allocation-label" id="shortTermAnnual-label">Annual</div>
+                            <div class="allocation-amount" id="shortTermAnnual" aria-labelledby="shortTermAnnual-label" aria-live="polite">$12,000</div>
                         </div>
                     </div>
-                </div>
+                </article>
 
-                <div class="category-item long-term">
+                <article class="category-item long-term" aria-labelledby="longTerm-title" role="region">
                     <div class="category-header">
-                        <div class="category-title">Long-Term Savings</div>
-                        <div class="category-percentage"><span id="longTermPercent">20</span>%</div>
+                        <h3 class="category-title" id="longTerm-title">Long-Term Savings</h3>
+                        <div class="category-percentage" aria-live="polite"><span id="longTermPercent">20</span>%</div>
                     </div>
-                    <div class="category-description">
+                    <p class="category-description" id="longTerm-desc">
                         Retirement accounts (401k, IRA), investments, long-term wealth building
-                    </div>
+                    </p>
                     <div class="slider-container">
-                        <input type="range" min="0" max="100" value="20" class="slider" id="longTermSlider">
+                        <label for="longTermSlider" class="sr-only">Long-term savings allocation percentage</label>
+                        <input type="range" min="0" max="100" value="20" class="slider" id="longTermSlider" aria-describedby="longTerm-desc" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20" aria-valuetext="20 percent">
                     </div>
-                    <div class="allocation-display">
-                        <div class="allocation-box">
-                            <div class="allocation-label">Monthly</div>
-                            <div class="allocation-amount" id="longTermMonthly">$1,000</div>
+                    <div class="allocation-display" role="group" aria-label="Long-term savings allocation amounts">
+                        <div class="allocation-box" tabindex="0" role="button" aria-label="Edit monthly long-term savings allocation">
+                            <div class="allocation-label" id="longTermMonthly-label">Monthly</div>
+                            <div class="allocation-amount" id="longTermMonthly" aria-labelledby="longTermMonthly-label" aria-live="polite">$1,000</div>
                         </div>
-                        <div class="allocation-box">
-                            <div class="allocation-label">Annual</div>
-                            <div class="allocation-amount" id="longTermAnnual">$12,000</div>
+                        <div class="allocation-box" tabindex="0" role="button" aria-label="Edit annual long-term savings allocation">
+                            <div class="allocation-label" id="longTermAnnual-label">Annual</div>
+                            <div class="allocation-amount" id="longTermAnnual" aria-labelledby="longTermAnnual-label" aria-live="polite">$12,000</div>
                         </div>
                     </div>
-                </div>
+                </article>
 
-                <div class="category-item guilt-free">
+                <article class="category-item guilt-free" aria-labelledby="guiltFree-title" role="region">
                     <div class="category-header">
-                        <div class="category-title">Guilt-Free Spending</div>
-                        <div class="category-percentage"><span id="guiltFreePercent">10</span>%</div>
+                        <h3 class="category-title" id="guiltFree-title">Guilt-Free Spending</h3>
+                        <div class="category-percentage" aria-live="polite"><span id="guiltFreePercent">10</span>%</div>
                     </div>
-                    <div class="category-description">
+                    <p class="category-description" id="guiltFree-desc">
                         Dining out, entertainment, hobbies, shopping - enjoy without guilt after covering essentials and savings
-                    </div>
+                    </p>
                     <div class="slider-container">
-                        <input type="range" min="0" max="100" value="10" class="slider" id="guiltFreeSlider">
+                        <label for="guiltFreeSlider" class="sr-only">Guilt-free spending allocation percentage</label>
+                        <input type="range" min="0" max="100" value="10" class="slider" id="guiltFreeSlider" aria-describedby="guiltFree-desc" aria-valuemin="0" aria-valuemax="100" aria-valuenow="10" aria-valuetext="10 percent">
                     </div>
-                    <div class="allocation-display">
-                        <div class="allocation-box">
-                            <div class="allocation-label">Monthly</div>
-                            <div class="allocation-amount" id="guiltFreeMonthly">$500</div>
+                    <div class="allocation-display" role="group" aria-label="Guilt-free spending allocation amounts">
+                        <div class="allocation-box" tabindex="0" role="button" aria-label="Edit monthly guilt-free spending allocation">
+                            <div class="allocation-label" id="guiltFreeMonthly-label">Monthly</div>
+                            <div class="allocation-amount" id="guiltFreeMonthly" aria-labelledby="guiltFreeMonthly-label" aria-live="polite">$500</div>
                         </div>
-                        <div class="allocation-box">
-                            <div class="allocation-label">Annual</div>
-                            <div class="allocation-amount" id="guiltFreeAnnual">$6,000</div>
+                        <div class="allocation-box" tabindex="0" role="button" aria-label="Edit annual guilt-free spending allocation">
+                            <div class="allocation-label" id="guiltFreeAnnual-label">Annual</div>
+                            <div class="allocation-amount" id="guiltFreeAnnual" aria-labelledby="guiltFreeAnnual-label" aria-live="polite">$6,000</div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
+                </article>
+            </section>
+        </main>
 
-        <footer>
-            Inspired by <a href="https://www.iwillteachyoutoberich.com/" target="_blank">Ramit Sethi's "I Will Teach You to Be Rich"</a> |
-            <a href="transaction-analyzer.html">Transaction Analyzer</a> |
-            <a href="index.html">Retirement Simulator</a>
+        <footer role="contentinfo">
+            <nav aria-label="Related resources and site navigation">
+                Inspired by <a href="https://www.iwillteachyoutoberich.com/" target="_blank" rel="noopener noreferrer">Ramit Sethi's "I Will Teach You to Be Rich" <span class="sr-only">(opens in new tab)</span></a> |
+                <a href="transaction-analyzer.html">Transaction Analyzer</a> |
+                <a href="index.html">Retirement Simulator</a>
+            </nav>
         </footer>
     </div>
 
@@ -601,6 +678,9 @@
                 for (const [key, data] of Object.entries(this.categories)) {
                     data.slider.addEventListener('input', (e) => {
                         const newValue = parseInt(e.target.value);
+                        // Update ARIA attributes for screen readers
+                        e.target.setAttribute('aria-valuenow', newValue);
+                        e.target.setAttribute('aria-valuetext', `${newValue} percent`);
                         this.adjustCategories(key, newValue);
                     });
 
@@ -610,6 +690,20 @@
                     });
                     data.annual.parentElement.addEventListener('click', () => {
                         this.makeEditable(key, 'annual');
+                    });
+
+                    // Add keyboard handlers for accessibility (Enter/Space to edit)
+                    data.monthly.parentElement.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            this.makeEditable(key, 'monthly');
+                        }
+                    });
+                    data.annual.parentElement.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            this.makeEditable(key, 'annual');
+                        }
                     });
                 }
 
@@ -764,9 +858,16 @@
             setTaxType(type) {
                 this.taxType = type;
 
-                // Update UI
-                document.getElementById('postTaxOption').classList.toggle('active', type === 'post-tax');
-                document.getElementById('preTaxOption').classList.toggle('active', type === 'pre-tax');
+                // Update UI and ARIA states
+                const postTaxBtn = document.getElementById('postTaxOption');
+                const preTaxBtn = document.getElementById('preTaxOption');
+
+                postTaxBtn.classList.toggle('active', type === 'post-tax');
+                preTaxBtn.classList.toggle('active', type === 'pre-tax');
+
+                // Update ARIA pressed states for screen readers
+                postTaxBtn.setAttribute('aria-pressed', type === 'post-tax');
+                preTaxBtn.setAttribute('aria-pressed', type === 'pre-tax');
 
                 // Show/hide tax fields
                 if (type === 'pre-tax') {
@@ -986,6 +1087,10 @@
                     // Update percentage display
                     data.percent.textContent = percentage;
                     data.slider.value = percentage;
+
+                    // Update ARIA attributes for screen readers
+                    data.slider.setAttribute('aria-valuenow', percentage);
+                    data.slider.setAttribute('aria-valuetext', `${percentage} percent`);
 
                     // Update allocation displays (only if not currently editing)
                     if (this.editingElement !== data.monthly) {
