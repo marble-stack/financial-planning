@@ -177,6 +177,13 @@
             color: #00695c;
         }
 
+        .stat-card .description {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
         .chart-container {
             margin: 30px 0;
             background: #f9f9f9;
@@ -391,6 +398,10 @@
                 font-size: 1.5em;
             }
 
+            .stat-card .description {
+                font-size: 0.75em;
+            }
+
             .chart-wrapper {
                 height: 300px;
             }
@@ -494,18 +505,22 @@
                     <div class="stat-card success">
                         <h3>Success Rate</h3>
                         <div class="value" id="successRate">-</div>
+                        <div class="description">Probability your money lasts through retirement without running out</div>
                     </div>
                     <div class="stat-card">
                         <h3>Median Ending Balance</h3>
                         <div class="value" id="medianBalance">-</div>
+                        <div class="description">Typical portfolio value at age 95 across all scenarios</div>
                     </div>
                     <div class="stat-card">
                         <h3>10th Percentile Balance</h3>
                         <div class="value" id="percentile10">-</div>
+                        <div class="description">Worst-case scenario: only 10% of outcomes are worse than this</div>
                     </div>
                     <div class="stat-card">
                         <h3>90th Percentile Balance</h3>
                         <div class="value" id="percentile90">-</div>
+                        <div class="description">Best-case scenario: only 10% of outcomes are better than this</div>
                     </div>
                 </div>
 
