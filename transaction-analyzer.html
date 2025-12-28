@@ -508,6 +508,65 @@
             text-decoration: underline;
         }
 
+        /* Navigation Tabs */
+        .nav-tabs {
+            max-width: 1200px;
+            margin: 0 auto 20px;
+            display: flex;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 16px 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #666;
+            font-weight: 600;
+            font-size: 0.95em;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            background: transparent;
+        }
+
+        .nav-tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .nav-tab-icon {
+            display: block;
+            font-size: 1.4em;
+            margin-bottom: 4px;
+        }
+
+        /* Accessibility: Skip link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            z-index: 100;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 0 0 4px 0;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
         /* Info Box */
         .info-box {
             background: #dbeafe;
@@ -782,6 +841,19 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            .nav-tabs {
+                border-radius: 8px 8px 0 0;
+            }
+
+            .nav-tab {
+                padding: 12px 8px;
+                font-size: 0.8em;
+            }
+
+            .nav-tab-icon {
+                font-size: 1.2em;
+            }
+
             header h1 {
                 font-size: 1.5em;
             }
@@ -857,13 +929,30 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Transaction Analyzer</h1>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <nav class="nav-tabs" role="navigation" aria-label="Main navigation">
+        <a href="income-allocation.html" class="nav-tab">
+            <span class="nav-tab-icon" aria-hidden="true">&#128176;</span>
+            Budget Planner
+        </a>
+        <a href="transaction-analyzer.html" class="nav-tab active" aria-current="page">
+            <span class="nav-tab-icon" aria-hidden="true">&#128202;</span>
+            Spending Tracker
+        </a>
+        <a href="index.html" class="nav-tab">
+            <span class="nav-tab-icon" aria-hidden="true">&#127793;</span>
+            Retirement Planner
+        </a>
+    </nav>
+
+    <div class="container" role="document">
+        <header role="banner">
+            <h1>Spending Tracker</h1>
             <p>Upload your bank transactions to see your actual spending vs. your goals</p>
         </header>
 
-        <div class="content">
+        <main id="main-content" class="content" role="main">
             <!-- Privacy Notice -->
             <div class="privacy-notice">
                 <span class="privacy-icon">&#128274;</span>
@@ -878,7 +967,7 @@
                 <div class="targets-grid">
                     <div class="target-input">
                         <label for="monthlyIncome">Monthly Income</label>
-                        <input type="number" id="monthlyIncome" value="5000" min="0" step="100">
+                        <input type="text" id="monthlyIncome" value="$5,000.00" inputmode="decimal" autocomplete="transaction-amount">
                     </div>
                     <div class="target-input">
                         <label for="targetFixed">Fixed Costs %</label>
@@ -1083,11 +1172,11 @@
                     <a href="income-allocation.html" class="btn btn-success">Adjust Your Allocation Plan</a>
                 </div>
             </div>
-        </div>
+        </main>
 
-        <footer>
-            <a href="income-allocation.html">Income Allocation Calculator</a> |
-            <a href="index.html">Retirement Simulator</a>
+        <footer role="contentinfo">
+            <a href="income-allocation.html">Budget Planner</a> |
+            <a href="index.html">Retirement Planner</a>
         </footer>
     </div>
 
@@ -1284,10 +1373,19 @@
                     this.handleFiles(e.target.files);
                 });
 
-                // Target inputs
-                document.getElementById('monthlyIncome').addEventListener('input', (e) => {
-                    this.targets.income = parseFloat(e.target.value) || 0;
+                // Target inputs - monthlyIncome with currency formatting
+                const incomeInput = document.getElementById('monthlyIncome');
+                incomeInput.addEventListener('input', (e) => {
+                    this.targets.income = this.parseCurrencyValue(e.target.value);
                     if (this.transactions.length > 0) this.updateDisplay();
+                });
+                incomeInput.addEventListener('focus', (e) => {
+                    const value = this.parseCurrencyValue(e.target.value);
+                    e.target.value = value > 0 ? value.toFixed(2) : '';
+                });
+                incomeInput.addEventListener('blur', (e) => {
+                    const value = this.parseCurrencyValue(e.target.value);
+                    e.target.value = this.formatCurrencyInput(value);
                 });
                 document.getElementById('targetFixed').addEventListener('input', (e) => {
                     this.targets.fixedCosts = parseFloat(e.target.value) || 0;
@@ -1902,6 +2000,17 @@
 
             formatCurrency(value) {
                 return FinanceUtils.formatCurrency(value);
+            }
+
+            parseCurrencyValue(value) {
+                // Remove all non-numeric characters except decimal point
+                const cleaned = String(value).replace(/[^0-9.]/g, '');
+                return parseFloat(cleaned) || 0;
+            }
+
+            formatCurrencyInput(value) {
+                // Format as currency with commas and 2 decimal places
+                return '$' + value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             }
 
             escapeHtml(text) {
