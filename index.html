@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Monte Carlo retirement planning simulator with life events modeling. Calculate your retirement success rate using probabilistic simulations.">
     <title>Monte Carlo Retirement Projection Simulator</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-k2x3bUYzHL3ON8g1cMVEC06IKYC+XV3X/v/v7lMj7x7Yr1JXEY1eh+d2LNko6cFB" crossorigin="anonymous"></script>
     <script src="shared.js"></script>
     <style>
         * {
@@ -987,6 +987,10 @@
                 container.innerHTML = '';
 
                 events.forEach(event => {
+                    // Escape user input to prevent XSS
+                    const escapedName = DOMUtils.escapeHtml(event.name);
+                    const safeAriaLabel = event.name ? `Delete ${escapedName}` : 'Delete this event';
+
                     const eventItem = document.createElement('div');
                     eventItem.className = 'event-item';
                     eventItem.setAttribute('role', 'listitem');
@@ -1000,7 +1004,7 @@
                         </div>
                         <div class="event-field">
                             <label for="event-name-${event.id}">Name</label>
-                            <input id="event-name-${event.id}" type="text" placeholder="e.g., College costs" value="${event.name}" data-id="${event.id}" data-field="name" aria-label="Event name">
+                            <input id="event-name-${event.id}" type="text" placeholder="e.g., College costs" data-id="${event.id}" data-field="name" aria-label="Event name">
                         </div>
                         <div class="event-field">
                             <label for="event-amount-${event.id}">Annual Amount ($)</label>
@@ -1014,8 +1018,12 @@
                             <label for="event-duration-${event.id}">Duration (years)</label>
                             <input id="event-duration-${event.id}" type="number" placeholder="1" value="${event.duration}" min="1" max="50" data-id="${event.id}" data-field="duration" aria-label="Duration in years">
                         </div>
-                        <button class="delete-event-btn" data-id="${event.id}" aria-label="Delete ${event.name || 'this event'}">×</button>
+                        <button class="delete-event-btn" data-id="${event.id}" aria-label="${safeAriaLabel}">×</button>
                     `;
+
+                    // Set the name value safely via DOM property (not innerHTML)
+                    const nameInput = eventItem.querySelector(`#event-name-${event.id}`);
+                    if (nameInput) nameInput.value = event.name;
 
                     // Add event listeners to inputs
                     eventItem.querySelectorAll('input, select').forEach(input => {
