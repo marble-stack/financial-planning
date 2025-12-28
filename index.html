@@ -463,6 +463,19 @@
         }
 
         @media (max-width: 768px) {
+            .nav-tabs {
+                border-radius: 8px 8px 0 0;
+            }
+
+            .nav-tab {
+                padding: 12px 8px;
+                font-size: 0.8em;
+            }
+
+            .nav-tab-icon {
+                font-size: 1.2em;
+            }
+
             header h1 {
                 font-size: 1.6em;
             }
@@ -516,10 +529,26 @@
 </head>
 <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
-    <div class="container">
+
+    <nav class="nav-tabs" role="navigation" aria-label="Main navigation">
+        <a href="income-allocation.html" class="nav-tab">
+            <span class="nav-tab-icon" aria-hidden="true">&#128176;</span>
+            Budget Planner
+        </a>
+        <a href="transaction-analyzer.html" class="nav-tab">
+            <span class="nav-tab-icon" aria-hidden="true">&#128202;</span>
+            Spending Tracker
+        </a>
+        <a href="index.html" class="nav-tab active" aria-current="page">
+            <span class="nav-tab-icon" aria-hidden="true">&#127793;</span>
+            Retirement Planner
+        </a>
+    </nav>
+
+    <div class="container" role="document">
         <header role="banner">
-            <h1>Monte Carlo Retirement Projection Simulator</h1>
-            <p>Probabilistic retirement planning based on 10,000+ simulations</p>
+            <h1>Retirement Planner</h1>
+            <p>Monte Carlo simulation with 10,000+ scenarios to project your retirement success</p>
         </header>
 
         <main id="main-content" role="main" class="content">
@@ -535,13 +564,13 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="currentSavings">Current Retirement Savings ($)</label>
-                    <input type="number" id="currentSavings" value="100000" min="0" step="1000">
+                    <label for="currentSavings">Current Retirement Savings</label>
+                    <input type="text" id="currentSavings" value="$100,000.00" inputmode="decimal" autocomplete="off">
                 </div>
 
                 <div class="input-group">
-                    <label for="annualContribution">Annual Contribution Until Retirement ($)</label>
-                    <input type="number" id="annualContribution" value="15000" min="0" step="1000">
+                    <label for="annualContribution">Annual Contribution Until Retirement</label>
+                    <input type="text" id="annualContribution" value="$15,000.00" inputmode="decimal" autocomplete="off">
                 </div>
 
                 <div class="input-group">
@@ -562,8 +591,8 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="annualSpending">Annual Spending in Retirement ($)</label>
-                    <input type="number" id="annualSpending" value="60000" min="0" step="1000">
+                    <label for="annualSpending">Annual Spending in Retirement</label>
+                    <input type="text" id="annualSpending" value="$60,000.00" inputmode="decimal" autocomplete="off">
                     <small>Will be adjusted for inflation</small>
                 </div>
 
@@ -652,8 +681,8 @@
             Actual investment returns vary and past performance does not guarantee future results.
             Please consult with a qualified financial advisor for personalized retirement planning.
             <br><br>
-            <a href="income-allocation.html" style="color: #667eea; font-weight: 600; text-decoration: none;">Income Allocation Calculator</a> |
-            <a href="transaction-analyzer.html" style="color: #667eea; font-weight: 600; text-decoration: none;">Transaction Analyzer</a>
+            <a href="income-allocation.html" style="color: #667eea; font-weight: 600; text-decoration: none;">Budget Planner</a> |
+            <a href="transaction-analyzer.html" style="color: #667eea; font-weight: 600; text-decoration: none;">Spending Tracker</a>
         </footer>
     </div>
 
@@ -911,6 +940,20 @@
                     this.runSimulation();
                 });
 
+                // Currency formatting for money inputs
+                const currencyInputs = ['currentSavings', 'annualContribution', 'annualSpending'];
+                currencyInputs.forEach(inputId => {
+                    const input = document.getElementById(inputId);
+                    input.addEventListener('focus', (e) => {
+                        const value = this.parseCurrencyValue(e.target.value);
+                        e.target.value = value > 0 ? value.toFixed(2) : '';
+                    });
+                    input.addEventListener('blur', (e) => {
+                        const value = this.parseCurrencyValue(e.target.value);
+                        e.target.value = this.formatCurrencyInput(value);
+                    });
+                });
+
                 // Life events toggle
                 document.getElementById('toggleEvents').addEventListener('click', () => {
                     this.toggleEventsPanel();
@@ -1018,16 +1061,27 @@
                 });
             }
 
+            parseCurrencyValue(value) {
+                // Remove all non-numeric characters except decimal point
+                const cleaned = String(value).replace(/[^0-9.]/g, '');
+                return parseFloat(cleaned) || 0;
+            }
+
+            formatCurrencyInput(value) {
+                // Format as currency with commas and 2 decimal places
+                return '$' + value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+
             getInputValues() {
                 return {
                     currentAge: parseInt(document.getElementById('currentAge').value),
                     retirementAge: parseInt(document.getElementById('retirementAge').value),
-                    currentSavings: parseFloat(document.getElementById('currentSavings').value),
-                    annualContribution: parseFloat(document.getElementById('annualContribution').value),
+                    currentSavings: this.parseCurrencyValue(document.getElementById('currentSavings').value),
+                    annualContribution: this.parseCurrencyValue(document.getElementById('annualContribution').value),
                     expectedReturn: parseFloat(document.getElementById('expectedReturn').value),
                     returnVolatility: parseFloat(document.getElementById('returnVolatility').value),
                     inflationRate: parseFloat(document.getElementById('inflationRate').value),
-                    annualSpending: parseFloat(document.getElementById('annualSpending').value),
+                    annualSpending: this.parseCurrencyValue(document.getElementById('annualSpending').value),
                     yearsInRetirement: parseInt(document.getElementById('yearsInRetirement').value),
                     numSimulations: parseInt(document.getElementById('numSimulations').value)
                 };
