@@ -1797,51 +1797,63 @@ Respond with ONLY a JSON array in this exact format, no other text:
 
                 let successCount = 0;
                 let errorCount = 0;
+                let lastError = '';
 
                 try {
-                    // Process in batches of 30 (smaller batches for reliability)
-                    const batchSize = 30;
+                    // Process in small batches of 15 for reliability
+                    const batchSize = 15;
                     for (let i = 0; i < uncategorized.length; i += batchSize) {
                         const batch = uncategorized.slice(i, i + batchSize);
                         const batchEnd = Math.min(i + batchSize, uncategorized.length);
-                        this.showAiStatus(`Processing ${i + 1}-${batchEnd} of ${uncategorized.length}... (${successCount} done)`, 'processing');
+                        this.showAiStatus(`Processing ${i + 1}-${batchEnd} of ${uncategorized.length}... (${successCount} done, ${errorCount} failed)`, 'processing');
 
-                        try {
-                            const categorizations = await this.callAI(provider, apiKey, batch);
-
-                            // Apply categorizations
-                            categorizations.forEach(result => {
-                                const transaction = this.transactions.find(t => t.id === result.id);
-                                if (transaction && result.category && this.isValidCategory(result.category)) {
-                                    transaction.category = result.category;
-                                    this.saveRule(transaction.description, result.category);
-                                    successCount++;
+                        // Try up to 3 times per batch
+                        let batchSuccess = false;
+                        for (let attempt = 1; attempt <= 3 && !batchSuccess; attempt++) {
+                            try {
+                                if (attempt > 1) {
+                                    this.showAiStatus(`Retry ${attempt}/3 for batch ${i + 1}-${batchEnd}...`, 'processing');
+                                    await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
                                 }
-                            });
 
-                            // Update display after each batch
-                            this.updateDisplay();
-                        } catch (batchError) {
-                            console.error(`Batch error (${i}-${batchEnd}):`, batchError);
-                            errorCount += batch.length;
-                            // Continue with next batch instead of failing completely
+                                const categorizations = await this.callAI(provider, apiKey, batch);
+
+                                // Apply categorizations
+                                categorizations.forEach(result => {
+                                    const transaction = this.transactions.find(t => t.id === result.id);
+                                    if (transaction && result.category && this.isValidCategory(result.category)) {
+                                        transaction.category = result.category;
+                                        this.saveRule(transaction.description, result.category);
+                                        successCount++;
+                                    }
+                                });
+
+                                batchSuccess = true;
+                                this.updateDisplay();
+                            } catch (batchError) {
+                                lastError = batchError.message;
+                                console.error(`Batch error (attempt ${attempt}):`, batchError);
+                                if (attempt === 3) {
+                                    errorCount += batch.length;
+                                }
+                            }
                         }
 
                         // Small delay between batches to avoid rate limits
                         if (i + batchSize < uncategorized.length) {
-                            await new Promise(resolve => setTimeout(resolve, 500));
+                            await new Promise(resolve => setTimeout(resolve, 800));
                         }
                     }
 
                     if (successCount > 0) {
-                        const remaining = uncategorized.length - successCount;
+                        const remaining = this.transactions.filter(t => t.category === 'uncategorized').length;
                         if (remaining > 0) {
-                            this.showAiStatus(`Categorized ${successCount} transactions. ${remaining} failed - you can retry or categorize manually.`, 'success');
+                            this.showAiStatus(`Categorized ${successCount}. ${remaining} still uncategorized - click again to retry. Last error: ${lastError}`, 'success');
                         } else {
                             this.showAiStatus(`Successfully categorized all ${successCount} transactions!`, 'success');
                         }
                     } else {
-                        this.showAiStatus(`Failed to categorize transactions. Check your API key and try again.`, 'error');
+                        this.showAiStatus(`Failed: ${lastError}`, 'error');
                     }
                 } catch (error) {
                     console.error('AI categorization error:', error);
