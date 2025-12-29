@@ -1151,6 +1151,28 @@
                         data.annual.textContent = this.formatCurrency(annualAmount);
                     }
                 }
+
+                // Save data for other pages (Spending Tracker and Retirement Forecast)
+                this.saveDataForOtherPages(monthlyIncome);
+            }
+
+            saveDataForOtherPages(monthlyIncome) {
+                // Save for Spending Tracker
+                StorageUtils.set('budgetPlannerData', {
+                    monthlyIncome: monthlyIncome,
+                    fixedCosts: this.categories.fixedCosts.value,
+                    shortTerm: this.categories.shortTerm.value,
+                    longTerm: this.categories.longTerm.value,
+                    guiltFree: this.categories.guiltFree.value,
+                    lastUpdated: new Date().toISOString()
+                });
+
+                // Save retirement savings amount for Retirement Forecast
+                const monthlyRetirementSavings = (monthlyIncome * this.categories.longTerm.value) / 100;
+                StorageUtils.set('budgetRetirementData', {
+                    annualContribution: monthlyRetirementSavings * 12,
+                    lastUpdated: new Date().toISOString()
+                });
             }
 
             formatCurrency(value) {
