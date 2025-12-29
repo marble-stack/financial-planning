@@ -1632,6 +1632,9 @@
                     // Show upload success feedback
                     this.showUploadSuccess(fileNames, this.transactions.length);
 
+                    // Save transactions to localStorage for session persistence
+                    StorageUtils.set('transactionData', this.transactions);
+
                     // Save spending data for Retirement Forecast page
                     this.saveSpendingDataForRetirement();
                 }).catch(error => {
@@ -2045,6 +2048,9 @@
                     }
                 });
 
+                // Save to localStorage for session persistence
+                StorageUtils.set('transactionData', this.transactions);
+
                 this.updateDisplay();
             }
 
@@ -2342,6 +2348,9 @@
                     // Save the rule for this merchant
                     this.saveRule(transaction.description, newCategory);
 
+                    // Save to localStorage for session persistence
+                    StorageUtils.set('transactionData', this.transactions);
+
                     // Update display
                     this.updateStats();
                     this.updateSummaryCards();
@@ -2568,6 +2577,10 @@ Respond with ONLY a JSON array in this exact format, no other text:
                     }
                 } finally {
                     document.getElementById('aiCategorizeBtn').disabled = false;
+                    // Save to localStorage for session persistence
+                    if (this.transactions.length > 0) {
+                        StorageUtils.set('transactionData', this.transactions);
+                    }
                 }
             }
 
@@ -2871,13 +2884,47 @@ Respond with ONLY a JSON array in this exact format, no other text:
                 },
                 // Handle import
                 (result) => {
+                    // Reload budget data to update targets (must happen before updateDisplay)
+                    const budgetData = StorageUtils.get('budgetPlannerData');
+                    if (budgetData) {
+                        // Update income
+                        if (budgetData.monthlyIncome) {
+                            analyzer.targets.income = budgetData.monthlyIncome;
+                            document.getElementById('monthlyIncome').value = analyzer.formatCurrencyInput(budgetData.monthlyIncome);
+                        }
+                        // Update allocation percentages
+                        if (budgetData.fixedCosts !== undefined) {
+                            const rounded = parseFloat(budgetData.fixedCosts.toFixed(1));
+                            analyzer.targets.fixedCosts = rounded;
+                            document.getElementById('targetFixed').value = rounded;
+                        }
+                        if (budgetData.shortTerm !== undefined) {
+                            const rounded = parseFloat(budgetData.shortTerm.toFixed(1));
+                            analyzer.targets.shortTerm = rounded;
+                            document.getElementById('targetShortTerm').value = rounded;
+                        }
+                        if (budgetData.longTerm !== undefined) {
+                            const rounded = parseFloat(budgetData.longTerm.toFixed(1));
+                            analyzer.targets.longTerm = rounded;
+                            document.getElementById('targetLongTerm').value = rounded;
+                        }
+                        if (budgetData.guiltFree !== undefined) {
+                            const rounded = parseFloat(budgetData.guiltFree.toFixed(1));
+                            analyzer.targets.guiltFree = rounded;
+                            document.getElementById('targetGuiltFree').value = rounded;
+                        }
+                    }
+
                     // Check if we have transaction data in the imported session
-                    const session = StorageUtils.get('transactionData', []);
-                    if (Array.isArray(session) && session.length > 0) {
-                        analyzer.transactions = session;
+                    const transactionData = StorageUtils.get('transactionData', []);
+                    if (Array.isArray(transactionData) && transactionData.length > 0) {
+                        analyzer.transactions = transactionData;
                         analyzer.updateDisplay();
                         document.getElementById('resultsSection').classList.remove('results-hidden');
-                        SessionManager.showToast('Transactions restored!', 'success');
+                        SessionManager.showToast('Session restored!', 'success');
+                    } else if (budgetData) {
+                        // Even without transactions, show updated targets
+                        SessionManager.showToast('Budget settings restored!', 'success');
                     } else {
                         window.location.reload();
                     }
