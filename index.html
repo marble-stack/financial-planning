@@ -1410,6 +1410,36 @@
 
         // Initialize the application
         const ui = new SimulatorUI();
+
+        // Load data from other pages if available
+        DOMUtils.ready(() => {
+            // Try to load from Spending Tracker data first (most accurate)
+            const spendingData = StorageUtils.get('spendingTrackerData');
+            if (spendingData) {
+                // Update Annual Spending in Retirement
+                const annualSpending = spendingData.monthlySpending * 12;
+                const spendingInput = document.getElementById('annualSpending');
+                if (spendingInput && annualSpending > 0) {
+                    spendingInput.value = '$' + annualSpending.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+
+                // Update Annual Contribution
+                const contribution = spendingData.monthlyRetirementSavings * 12;
+                const contributionInput = document.getElementById('annualContribution');
+                if (contributionInput && contribution > 0) {
+                    contributionInput.value = '$' + contribution.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+            } else {
+                // Fall back to Budget Planner data
+                const budgetData = StorageUtils.get('budgetRetirementData');
+                if (budgetData && budgetData.annualContribution > 0) {
+                    const contributionInput = document.getElementById('annualContribution');
+                    if (contributionInput) {
+                        contributionInput.value = '$' + budgetData.annualContribution.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>
