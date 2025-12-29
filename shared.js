@@ -196,3 +196,377 @@ const DateUtils = {
         return d.toLocaleDateString('en-US', options);
     }
 };
+
+/**
+ * Session Manager for saving and restoring user sessions across all tools
+ * Allows users to export their data as a JSON file and import it later
+ */
+const SessionManager = {
+    VERSION: '1.0',
+
+    /**
+     * Storage keys used by each page
+     */
+    STORAGE_KEYS: {
+        budgetPlanner: 'budgetPlannerData',
+        budgetRetirement: 'budgetRetirementData',
+        spendingTracker: 'spendingTrackerData',
+        transactionRules: 'transactionRules',
+        transactionData: 'transactionData',
+        bankFormat: 'bankFormat',
+        aiProvider: 'aiProvider',
+        retirementForecast: 'retirementForecastData',
+        lifeEvents: 'lifeEventsData'
+    },
+
+    /**
+     * Export all session data as a downloadable JSON file
+     * @param {Object} pageData - Additional page-specific data to include
+     * @returns {Object} The complete session object
+     */
+    exportSession(pageData = {}) {
+        const session = {
+            version: this.VERSION,
+            exportedAt: new Date().toISOString(),
+            budgetPlanner: StorageUtils.get(this.STORAGE_KEYS.budgetPlanner, null),
+            budgetRetirement: StorageUtils.get(this.STORAGE_KEYS.budgetRetirement, null),
+            spendingTracker: StorageUtils.get(this.STORAGE_KEYS.spendingTracker, null),
+            transactionRules: StorageUtils.get(this.STORAGE_KEYS.transactionRules, {}),
+            transactionData: StorageUtils.get(this.STORAGE_KEYS.transactionData, []),
+            bankFormat: StorageUtils.get(this.STORAGE_KEYS.bankFormat, 'chase'),
+            aiProvider: StorageUtils.get(this.STORAGE_KEYS.aiProvider, 'gemini'),
+            retirementForecast: StorageUtils.get(this.STORAGE_KEYS.retirementForecast, null),
+            lifeEvents: StorageUtils.get(this.STORAGE_KEYS.lifeEvents, []),
+            ...pageData
+        };
+
+        return session;
+    },
+
+    /**
+     * Download session as JSON file
+     * @param {Object} pageData - Additional page-specific data to include
+     */
+    downloadSession(pageData = {}) {
+        const session = this.exportSession(pageData);
+        const timestamp = new Date().toISOString().split('T')[0];
+        const filename = `financial-plan-${timestamp}.json`;
+        DOMUtils.downloadFile(
+            JSON.stringify(session, null, 2),
+            filename,
+            'application/json'
+        );
+        return session;
+    },
+
+    /**
+     * Import session data from a JSON object
+     * @param {Object} session - The session object to import
+     * @returns {Object} Result with success status and any warnings
+     */
+    importSession(session) {
+        const result = { success: false, warnings: [], imported: [] };
+
+        // Validate version
+        if (!session.version) {
+            result.warnings.push('Session file missing version - attempting import anyway');
+        }
+
+        // Import budget planner data
+        if (session.budgetPlanner) {
+            StorageUtils.set(this.STORAGE_KEYS.budgetPlanner, session.budgetPlanner);
+            result.imported.push('Budget Planner settings');
+        }
+
+        // Import budget retirement data
+        if (session.budgetRetirement) {
+            StorageUtils.set(this.STORAGE_KEYS.budgetRetirement, session.budgetRetirement);
+            result.imported.push('Retirement contribution settings');
+        }
+
+        // Import spending tracker data
+        if (session.spendingTracker) {
+            StorageUtils.set(this.STORAGE_KEYS.spendingTracker, session.spendingTracker);
+            result.imported.push('Spending Tracker data');
+        }
+
+        // Import transaction rules
+        if (session.transactionRules && Object.keys(session.transactionRules).length > 0) {
+            StorageUtils.set(this.STORAGE_KEYS.transactionRules, session.transactionRules);
+            result.imported.push('Transaction categorization rules');
+        }
+
+        // Import transaction data (parsed transactions from CSV uploads)
+        if (session.transactionData && Array.isArray(session.transactionData) && session.transactionData.length > 0) {
+            StorageUtils.set(this.STORAGE_KEYS.transactionData, session.transactionData);
+            result.imported.push(`${session.transactionData.length} transactions`);
+        }
+
+        // Import bank format preference
+        if (session.bankFormat) {
+            StorageUtils.set(this.STORAGE_KEYS.bankFormat, session.bankFormat);
+        }
+
+        // Import AI provider preference
+        if (session.aiProvider) {
+            StorageUtils.set(this.STORAGE_KEYS.aiProvider, session.aiProvider);
+            result.imported.push('AI provider preference');
+        }
+
+        // Import retirement forecast data
+        if (session.retirementForecast) {
+            StorageUtils.set(this.STORAGE_KEYS.retirementForecast, session.retirementForecast);
+            result.imported.push('Retirement Forecast settings');
+        }
+
+        // Import life events
+        if (session.lifeEvents && Array.isArray(session.lifeEvents)) {
+            StorageUtils.set(this.STORAGE_KEYS.lifeEvents, session.lifeEvents);
+            result.imported.push('Life events');
+        }
+
+        result.success = result.imported.length > 0;
+        return result;
+    },
+
+    /**
+     * Prompt user to select and import a session file
+     * @param {Function} onComplete - Callback with import result
+     */
+    promptImport(onComplete) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,application/json';
+
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) {
+                onComplete({ success: false, error: 'No file selected' });
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const session = JSON.parse(event.target.result);
+                    const result = this.importSession(session);
+                    onComplete(result);
+                } catch (err) {
+                    onComplete({ success: false, error: 'Invalid JSON file: ' + err.message });
+                }
+            };
+            reader.onerror = () => {
+                onComplete({ success: false, error: 'Failed to read file' });
+            };
+            reader.readAsText(file);
+        };
+
+        input.click();
+    },
+
+    /**
+     * Clear all session data from localStorage
+     */
+    clearSession() {
+        for (const key of Object.values(this.STORAGE_KEYS)) {
+            StorageUtils.remove(key);
+        }
+    },
+
+    /**
+     * Create the session toolbar HTML
+     * @returns {string} HTML string for the session toolbar
+     */
+    createToolbarHTML() {
+        return `
+            <div class="session-toolbar" role="toolbar" aria-label="Session management">
+                <button type="button" class="session-btn session-save-btn" id="saveSessionBtn" aria-label="Save session to file">
+                    <span aria-hidden="true">&#128190;</span> Save Session
+                </button>
+                <button type="button" class="session-btn session-load-btn" id="loadSessionBtn" aria-label="Load session from file">
+                    <span aria-hidden="true">&#128194;</span> Load Session
+                </button>
+            </div>
+        `;
+    },
+
+    /**
+     * Get the CSS styles for the session toolbar
+     * @returns {string} CSS string
+     */
+    getToolbarStyles() {
+        return `
+            .session-toolbar {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                padding: 15px 20px;
+                background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+                border-bottom: 1px solid #ddd;
+            }
+
+            .session-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 18px;
+                border: 2px solid #667eea;
+                border-radius: 6px;
+                font-size: 0.95em;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .session-save-btn {
+                background: white;
+                color: #667eea;
+            }
+
+            .session-save-btn:hover {
+                background: #667eea;
+                color: white;
+            }
+
+            .session-load-btn {
+                background: white;
+                color: #667eea;
+            }
+
+            .session-load-btn:hover {
+                background: #764ba2;
+                border-color: #764ba2;
+                color: white;
+            }
+
+            .session-btn:focus {
+                outline: 3px solid #667eea;
+                outline-offset: 2px;
+            }
+
+            .session-toast {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-weight: 500;
+                z-index: 10000;
+                animation: slideUp 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            .session-toast.success {
+                background: #10b981;
+                color: white;
+            }
+
+            .session-toast.error {
+                background: #ef4444;
+                color: white;
+            }
+
+            .session-toast.info {
+                background: #667eea;
+                color: white;
+            }
+
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+            }
+
+            @media (max-width: 768px) {
+                .session-toolbar {
+                    padding: 12px 15px;
+                    gap: 8px;
+                }
+
+                .session-btn {
+                    padding: 8px 14px;
+                    font-size: 0.9em;
+                }
+            }
+        `;
+    },
+
+    /**
+     * Show a toast notification
+     * @param {string} message - The message to display
+     * @param {string} type - 'success', 'error', or 'info'
+     * @param {number} duration - How long to show the toast (ms)
+     */
+    showToast(message, type = 'info', duration = 3000) {
+        // Remove any existing toasts
+        const existing = document.querySelector('.session-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = `session-toast ${type}`;
+        toast.textContent = message;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'polite');
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    },
+
+    /**
+     * Initialize session toolbar on a page
+     * @param {Function} getPageData - Function to get current page-specific data
+     * @param {Function} onImport - Function to call after successful import to refresh page
+     */
+    initToolbar(getPageData, onImport) {
+        // Inject styles
+        if (!document.getElementById('session-toolbar-styles')) {
+            const style = document.createElement('style');
+            style.id = 'session-toolbar-styles';
+            style.textContent = this.getToolbarStyles();
+            document.head.appendChild(style);
+        }
+
+        // Find container and inject toolbar after header
+        const container = document.querySelector('.container');
+        const header = container?.querySelector('header');
+        if (header) {
+            header.insertAdjacentHTML('afterend', this.createToolbarHTML());
+
+            // Bind save button
+            document.getElementById('saveSessionBtn').addEventListener('click', () => {
+                const pageData = getPageData ? getPageData() : {};
+                this.downloadSession(pageData);
+                this.showToast('Session saved! Check your downloads folder.', 'success');
+            });
+
+            // Bind load button
+            document.getElementById('loadSessionBtn').addEventListener('click', () => {
+                this.promptImport((result) => {
+                    if (result.success) {
+                        this.showToast(`Loaded: ${result.imported.join(', ')}`, 'success', 4000);
+                        if (onImport) {
+                            onImport(result);
+                        } else {
+                            // Default: reload page to reflect changes
+                            setTimeout(() => window.location.reload(), 1000);
+                        }
+                    } else if (result.error) {
+                        this.showToast(result.error, 'error');
+                    } else {
+                        this.showToast('No data found to import', 'info');
+                    }
+                });
+            });
+        }
+    }
+};

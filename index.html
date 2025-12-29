@@ -2132,6 +2132,11 @@
                 return FinanceUtils.formatCurrencyCompact(value);
             }
 
+            formatCurrencyInput(value) {
+                // Format as currency with commas and 2 decimal places for input fields
+                return '$' + value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+
             updateHistogram(histogramData) {
                 const ctx = document.getElementById('histogramChart').getContext('2d');
 
@@ -2399,32 +2404,86 @@
 
         // Load data from other pages if available
         DOMUtils.ready(() => {
-            // Try to load from Spending Tracker data first (most accurate)
-            const spendingData = StorageUtils.get('spendingTrackerData');
-            if (spendingData) {
-                // Update Annual Spending in Retirement
-                const annualSpending = spendingData.monthlySpending * 12;
-                const spendingInput = document.getElementById('annualSpending');
-                if (spendingInput && annualSpending > 0) {
-                    spendingInput.value = '$' + annualSpending.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                }
+            // Load saved retirement forecast settings first
+            const savedForecast = StorageUtils.get('retirementForecastData');
+            if (savedForecast) {
+                // Restore all input fields
+                if (savedForecast.currentAge) document.getElementById('currentAge').value = savedForecast.currentAge;
+                if (savedForecast.retirementAge) document.getElementById('retirementAge').value = savedForecast.retirementAge;
+                if (savedForecast.currentSavings) document.getElementById('currentSavings').value = ui.formatCurrencyInput(savedForecast.currentSavings);
+                if (savedForecast.annualContribution) document.getElementById('annualContribution').value = ui.formatCurrencyInput(savedForecast.annualContribution);
+                if (savedForecast.expectedReturn) document.getElementById('expectedReturn').value = savedForecast.expectedReturn;
+                if (savedForecast.returnVolatility) document.getElementById('returnVolatility').value = savedForecast.returnVolatility;
+                if (savedForecast.inflationRate) document.getElementById('inflationRate').value = savedForecast.inflationRate;
+                if (savedForecast.annualSpending) document.getElementById('annualSpending').value = ui.formatCurrencyInput(savedForecast.annualSpending);
+                if (savedForecast.yearsInRetirement) document.getElementById('yearsInRetirement').value = savedForecast.yearsInRetirement;
+                if (savedForecast.numSimulations) document.getElementById('numSimulations').value = savedForecast.numSimulations;
+            }
 
-                // Update Annual Contribution
-                const contribution = spendingData.monthlyRetirementSavings * 12;
-                const contributionInput = document.getElementById('annualContribution');
-                if (contributionInput && contribution > 0) {
-                    contributionInput.value = '$' + contribution.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                }
-            } else {
-                // Fall back to Budget Planner data
-                const budgetData = StorageUtils.get('budgetRetirementData');
-                if (budgetData && budgetData.annualContribution > 0) {
+            // Load saved life events
+            const savedLifeEvents = StorageUtils.get('lifeEventsData', []);
+            if (savedLifeEvents.length > 0) {
+                // Expand the life events panel
+                document.getElementById('eventsPanel').classList.add('show');
+                document.getElementById('toggleEvents').classList.add('active');
+                document.getElementById('toggleEvents').setAttribute('aria-expanded', 'true');
+
+                // Add each saved life event
+                savedLifeEvents.forEach(event => {
+                    ui.addLifeEvent(event);
+                });
+            }
+
+            // Try to load from Spending Tracker data (for spending/contribution if not saved)
+            if (!savedForecast) {
+                const spendingData = StorageUtils.get('spendingTrackerData');
+                if (spendingData) {
+                    // Update Annual Spending in Retirement
+                    const annualSpending = spendingData.monthlySpending * 12;
+                    const spendingInput = document.getElementById('annualSpending');
+                    if (spendingInput && annualSpending > 0) {
+                        spendingInput.value = '$' + annualSpending.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    }
+
+                    // Update Annual Contribution
+                    const contribution = spendingData.monthlyRetirementSavings * 12;
                     const contributionInput = document.getElementById('annualContribution');
-                    if (contributionInput) {
-                        contributionInput.value = '$' + budgetData.annualContribution.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    if (contributionInput && contribution > 0) {
+                        contributionInput.value = '$' + contribution.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    }
+                } else {
+                    // Fall back to Budget Planner data
+                    const budgetData = StorageUtils.get('budgetRetirementData');
+                    if (budgetData && budgetData.annualContribution > 0) {
+                        const contributionInput = document.getElementById('annualContribution');
+                        if (contributionInput) {
+                            contributionInput.value = '$' + budgetData.annualContribution.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                        }
                     }
                 }
             }
+
+            // Initialize session toolbar
+            SessionManager.initToolbar(
+                // Get current page data for export
+                () => {
+                    const params = ui.getInputValues();
+                    const lifeEvents = ui.eventsManager.getEvents();
+
+                    // Save current state to localStorage for other pages
+                    StorageUtils.set('retirementForecastData', params);
+                    StorageUtils.set('lifeEventsData', lifeEvents);
+
+                    return {
+                        retirementForecast: params,
+                        lifeEvents: lifeEvents
+                    };
+                },
+                // Handle import - reload page to reflect changes
+                () => {
+                    window.location.reload();
+                }
+            );
         });
     </script>
 </body>

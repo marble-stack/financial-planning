@@ -1222,6 +1222,62 @@
         // Initialize the application
         DOMUtils.ready(() => {
             allocator = new IncomeAllocator();
+
+            // Load saved budget planner data
+            const savedData = StorageUtils.get('budgetPlannerData');
+            if (savedData) {
+                // Restore income
+                if (savedData.monthlyIncome) {
+                    document.getElementById('income').value = allocator.formatCurrencyInput(savedData.monthlyIncome);
+                    document.getElementById('incomeFrequency').value = 'monthly';
+                }
+
+                // Restore allocations
+                if (savedData.fixedCosts !== undefined) allocator.categories.fixedCosts.value = savedData.fixedCosts;
+                if (savedData.shortTerm !== undefined) allocator.categories.shortTerm.value = savedData.shortTerm;
+                if (savedData.longTerm !== undefined) allocator.categories.longTerm.value = savedData.longTerm;
+                if (savedData.guiltFree !== undefined) allocator.categories.guiltFree.value = savedData.guiltFree;
+
+                // Restore tax settings if present
+                if (savedData.taxType) {
+                    allocator.setTaxType(savedData.taxType);
+                }
+                if (savedData.zipCode) {
+                    document.getElementById('zipCode').value = savedData.zipCode;
+                }
+
+                // Recalculate to update display
+                allocator.calculate();
+            }
+
+            // Initialize session toolbar
+            SessionManager.initToolbar(
+                // Get current page data for export
+                () => {
+                    const currentData = {
+                        monthlyIncome: allocator.getMonthlyIncome(),
+                        frequency: document.getElementById('incomeFrequency').value,
+                        taxType: allocator.taxType,
+                        zipCode: document.getElementById('zipCode').value,
+                        fixedCosts: allocator.categories.fixedCosts.value,
+                        shortTerm: allocator.categories.shortTerm.value,
+                        longTerm: allocator.categories.longTerm.value,
+                        guiltFree: allocator.categories.guiltFree.value,
+                        lastUpdated: new Date().toISOString()
+                    };
+
+                    // Also save to localStorage
+                    StorageUtils.set('budgetPlannerData', currentData);
+
+                    return {
+                        budgetPlanner: currentData
+                    };
+                },
+                // Handle import - reload page to reflect changes
+                () => {
+                    window.location.reload();
+                }
+            );
         });
     </script>
 </body>
