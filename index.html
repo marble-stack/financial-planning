@@ -514,6 +514,271 @@
                 padding: 20px;
             }
         }
+
+        /* Mode Toggle */
+        .mode-toggle-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .mode-toggle-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .mode-toggle-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .mode-toggle-info p {
+            margin: 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: #fff;
+            border-radius: 8px;
+            padding: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .mode-btn {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            color: #666;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            color: #333;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* Collapsible sections */
+        .section-wrapper {
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 20px;
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .section-header:hover {
+            background: #f0f0f0;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            font-size: 1.05em;
+            color: #333;
+            flex: 1;
+        }
+
+        .section-header .section-icon {
+            font-size: 1.2em;
+        }
+
+        .section-header .toggle-arrow {
+            font-size: 0.8em;
+            color: #666;
+            transition: transform 0.3s;
+        }
+
+        .section-header.expanded .toggle-arrow {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            display: none;
+            padding: 20px;
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .section-content.show {
+            display: block;
+        }
+
+        /* Account breakdown */
+        .account-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e8e8e8;
+        }
+
+        .account-group-title {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95em;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .account-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .account-row:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Social Security section */
+        .ss-option-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .ss-option-btn {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            color: #555;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .ss-option-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .ss-option-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .ss-known-inputs,
+        .ss-estimate-inputs {
+            display: none;
+        }
+
+        .ss-known-inputs.show,
+        .ss-estimate-inputs.show {
+            display: block;
+        }
+
+        .ss-info-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+            border-left: 4px solid #667eea;
+            padding: 12px 15px;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .ss-result {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            padding: 15px 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .ss-result-label {
+            font-size: 0.9em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .ss-result-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #00796b;
+        }
+
+        /* Simple mode totals display */
+        .simple-totals {
+            display: none;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .simple-totals.show {
+            display: block;
+        }
+
+        .simple-totals-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .simple-totals-row:last-child {
+            border-bottom: none;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .mode-toggle-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .mode-toggle {
+                width: 100%;
+            }
+
+            .mode-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .account-row {
+                grid-template-columns: 1fr;
+            }
+
+            .ss-option-toggle {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -532,6 +797,21 @@
         </header>
 
         <main id="main-content" role="main" class="content">
+            <!-- Mode Toggle -->
+            <div class="mode-toggle-section">
+                <div class="mode-toggle-header">
+                    <div class="mode-toggle-info">
+                        <h3>Choose Your Planning Level</h3>
+                        <p>Simple mode uses totals; Advanced mode breaks down by account type for tax-aware projections</p>
+                    </div>
+                    <div class="mode-toggle" role="tablist" aria-label="Planning mode selection">
+                        <button class="mode-btn active" id="simpleModeBtn" role="tab" aria-selected="true" aria-controls="simpleInputs">Simple</button>
+                        <button class="mode-btn" id="advancedModeBtn" role="tab" aria-selected="false" aria-controls="advancedInputs">Advanced</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basic Info (always visible) -->
             <div class="input-section">
                 <div class="input-group">
                     <label for="currentAge">Current Age</label>
@@ -541,16 +821,6 @@
                 <div class="input-group">
                     <label for="retirementAge">Retirement Age</label>
                     <input type="number" id="retirementAge" value="65" min="18" max="100">
-                </div>
-
-                <div class="input-group">
-                    <label for="currentSavings">Current Retirement Savings</label>
-                    <input type="text" id="currentSavings" value="$100,000.00" inputmode="decimal" autocomplete="off">
-                </div>
-
-                <div class="input-group">
-                    <label for="annualContribution">Annual Contribution Until Retirement</label>
-                    <input type="text" id="annualContribution" value="$15,000.00" inputmode="decimal" autocomplete="off">
                 </div>
 
                 <div class="input-group">
@@ -587,6 +857,226 @@
                     <label for="numSimulations">Number of Simulations</label>
                     <input type="number" id="numSimulations" value="10000" min="1000" max="50000" step="1000">
                     <small>More simulations = better accuracy</small>
+                </div>
+            </div>
+
+            <!-- Simple Mode Inputs -->
+            <div id="simpleInputs" class="section-wrapper" role="tabpanel" aria-labelledby="simpleModeBtn">
+                <div class="input-section">
+                    <div class="input-group">
+                        <label for="currentSavings">Current Retirement Savings</label>
+                        <input type="text" id="currentSavings" value="$100,000.00" inputmode="decimal" autocomplete="off">
+                        <small>Total across all retirement accounts</small>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="annualContribution">Annual Contribution Until Retirement</label>
+                        <input type="text" id="annualContribution" value="$15,000.00" inputmode="decimal" autocomplete="off">
+                        <small>Total yearly contributions to all accounts</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Mode Inputs -->
+            <div id="advancedInputs" class="section-wrapper" role="tabpanel" aria-labelledby="advancedModeBtn" style="display: none;">
+                <!-- Current Savings Breakdown -->
+                <div class="section-wrapper">
+                    <div class="section-header expanded" id="savingsHeader" aria-expanded="true" aria-controls="savingsContent">
+                        <span class="section-icon" aria-hidden="true">💰</span>
+                        <h3>Current Savings by Account Type</h3>
+                        <span class="toggle-arrow" aria-hidden="true">▼</span>
+                    </div>
+                    <div class="section-content show" id="savingsContent">
+                        <div class="account-group">
+                            <div class="account-group-title">401(k) Accounts</div>
+                            <div class="account-row">
+                                <div class="input-group">
+                                    <label for="traditional401k">Traditional 401(k)</label>
+                                    <input type="text" id="traditional401k" value="$50,000.00" inputmode="decimal" autocomplete="off">
+                                    <small>Pre-tax contributions, taxed on withdrawal</small>
+                                </div>
+                                <div class="input-group">
+                                    <label for="roth401k">Roth 401(k)</label>
+                                    <input type="text" id="roth401k" value="$0.00" inputmode="decimal" autocomplete="off">
+                                    <small>After-tax contributions, tax-free growth</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="account-group">
+                            <div class="account-group-title">IRA Accounts</div>
+                            <div class="account-row">
+                                <div class="input-group">
+                                    <label for="traditionalIRA">Traditional IRA</label>
+                                    <input type="text" id="traditionalIRA" value="$25,000.00" inputmode="decimal" autocomplete="off">
+                                    <small>Pre-tax contributions, taxed on withdrawal</small>
+                                </div>
+                                <div class="input-group">
+                                    <label for="rothIRA">Roth IRA</label>
+                                    <input type="text" id="rothIRA" value="$15,000.00" inputmode="decimal" autocomplete="off">
+                                    <small>After-tax contributions, tax-free growth</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="account-group">
+                            <div class="account-group-title">Taxable Accounts</div>
+                            <div class="account-row">
+                                <div class="input-group">
+                                    <label for="taxableBrokerage">Taxable Brokerage</label>
+                                    <input type="text" id="taxableBrokerage" value="$10,000.00" inputmode="decimal" autocomplete="off">
+                                    <small>Regular investment account, capital gains taxed</small>
+                                </div>
+                                <div class="input-group">
+                                    <!-- Placeholder for layout -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="simple-totals show" id="savingsTotals">
+                            <div class="simple-totals-row">
+                                <span>Pre-tax (Traditional)</span>
+                                <span id="totalPreTax">$75,000.00</span>
+                            </div>
+                            <div class="simple-totals-row">
+                                <span>Tax-free (Roth)</span>
+                                <span id="totalRoth">$15,000.00</span>
+                            </div>
+                            <div class="simple-totals-row">
+                                <span>Taxable</span>
+                                <span id="totalTaxable">$10,000.00</span>
+                            </div>
+                            <div class="simple-totals-row">
+                                <span>Total Savings</span>
+                                <span id="totalSavings">$100,000.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Annual Contributions Breakdown -->
+                <div class="section-wrapper">
+                    <div class="section-header expanded" id="contributionsHeader" aria-expanded="true" aria-controls="contributionsContent">
+                        <span class="section-icon" aria-hidden="true">📈</span>
+                        <h3>Annual Contributions by Account Type</h3>
+                        <span class="toggle-arrow" aria-hidden="true">▼</span>
+                    </div>
+                    <div class="section-content show" id="contributionsContent">
+                        <div class="account-group">
+                            <div class="account-group-title">401(k) Contributions</div>
+                            <div class="account-row">
+                                <div class="input-group">
+                                    <label for="contribTraditional401k">Traditional 401(k)</label>
+                                    <input type="text" id="contribTraditional401k" value="$10,000.00" inputmode="decimal" autocomplete="off">
+                                </div>
+                                <div class="input-group">
+                                    <label for="contribRoth401k">Roth 401(k)</label>
+                                    <input type="text" id="contribRoth401k" value="$0.00" inputmode="decimal" autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="account-group">
+                            <div class="account-group-title">IRA Contributions</div>
+                            <div class="account-row">
+                                <div class="input-group">
+                                    <label for="contribTraditionalIRA">Traditional IRA</label>
+                                    <input type="text" id="contribTraditionalIRA" value="$0.00" inputmode="decimal" autocomplete="off">
+                                </div>
+                                <div class="input-group">
+                                    <label for="contribRothIRA">Roth IRA</label>
+                                    <input type="text" id="contribRothIRA" value="$5,000.00" inputmode="decimal" autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="account-group">
+                            <div class="account-group-title">Taxable Contributions</div>
+                            <div class="account-row">
+                                <div class="input-group">
+                                    <label for="contribTaxable">Taxable Brokerage</label>
+                                    <input type="text" id="contribTaxable" value="$0.00" inputmode="decimal" autocomplete="off">
+                                </div>
+                                <div class="input-group">
+                                    <!-- Placeholder for layout -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="simple-totals show" id="contributionsTotals">
+                            <div class="simple-totals-row">
+                                <span>Total Annual Contributions</span>
+                                <span id="totalContributions">$15,000.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Security Section -->
+            <div class="section-wrapper">
+                <div class="section-header" id="ssHeader" aria-expanded="false" aria-controls="ssContent">
+                    <span class="section-icon" aria-hidden="true">🏛️</span>
+                    <h3>Social Security (Optional)</h3>
+                    <span class="toggle-arrow" aria-hidden="true">▼</span>
+                </div>
+                <div class="section-content" id="ssContent">
+                    <div class="ss-option-toggle">
+                        <button class="ss-option-btn" id="ssNoneBtn">Don't Include</button>
+                        <button class="ss-option-btn" id="ssKnownBtn">I Know My Benefit</button>
+                        <button class="ss-option-btn" id="ssEstimateBtn">Estimate For Me</button>
+                    </div>
+
+                    <!-- Known SS Benefit -->
+                    <div class="ss-known-inputs" id="ssKnownInputs">
+                        <div class="ss-info-box">
+                            You can find your estimated benefit on your Social Security statement at ssa.gov/myaccount
+                        </div>
+                        <div class="input-section">
+                            <div class="input-group">
+                                <label for="ssMonthlyBenefit">Monthly Benefit at Full Retirement Age</label>
+                                <input type="text" id="ssMonthlyBenefit" value="$2,000.00" inputmode="decimal" autocomplete="off">
+                                <small>Your Primary Insurance Amount (PIA)</small>
+                            </div>
+                            <div class="input-group">
+                                <label for="ssStartAge">Age You'll Start Collecting</label>
+                                <input type="number" id="ssStartAge" value="67" min="62" max="70">
+                                <small>Early (62) = reduced; Late (70) = increased</small>
+                            </div>
+                        </div>
+                        <div class="ss-result" id="ssKnownResult">
+                            <div class="ss-result-label">Adjusted Monthly Benefit</div>
+                            <div class="ss-result-value" id="ssAdjustedBenefit">$2,000/mo</div>
+                        </div>
+                    </div>
+
+                    <!-- Estimate SS Benefit -->
+                    <div class="ss-estimate-inputs" id="ssEstimateInputs">
+                        <div class="ss-info-box">
+                            We'll estimate your benefit based on your current income. This is a rough approximation - for accuracy, check ssa.gov/myaccount
+                        </div>
+                        <div class="input-section">
+                            <div class="input-group">
+                                <label for="ssCurrentIncome">Current Annual Income</label>
+                                <input type="text" id="ssCurrentIncome" value="$75,000.00" inputmode="decimal" autocomplete="off">
+                                <small>Your W-2 or self-employment income</small>
+                            </div>
+                            <div class="input-group">
+                                <label for="ssWorkYears">Years You've Worked</label>
+                                <input type="number" id="ssWorkYears" value="15" min="0" max="50">
+                                <small>Years with covered earnings</small>
+                            </div>
+                            <div class="input-group">
+                                <label for="ssEstStartAge">Age You'll Start Collecting</label>
+                                <input type="number" id="ssEstStartAge" value="67" min="62" max="70">
+                                <small>Early (62) = reduced; Late (70) = increased</small>
+                            </div>
+                        </div>
+                        <div class="ss-result" id="ssEstimateResult">
+                            <div class="ss-result-label">Estimated Monthly Benefit</div>
+                            <div class="ss-result-value" id="ssEstimatedBenefit">$1,850/mo</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -668,6 +1158,93 @@
     </div>
 
     <script>
+        // Social Security Calculator
+        class SocialSecurityCalculator {
+            constructor() {
+                // 2024 bend points (these change annually, but are good approximations)
+                this.bendPoint1 = 1174; // Monthly
+                this.bendPoint2 = 7078; // Monthly
+                this.maxTaxableEarnings = 168600; // 2024 cap
+            }
+
+            // Calculate Full Retirement Age based on birth year
+            getFullRetirementAge(birthYear) {
+                if (birthYear <= 1937) return 65;
+                if (birthYear <= 1938) return 65 + 2/12;
+                if (birthYear <= 1939) return 65 + 4/12;
+                if (birthYear <= 1940) return 65 + 6/12;
+                if (birthYear <= 1941) return 65 + 8/12;
+                if (birthYear <= 1942) return 65 + 10/12;
+                if (birthYear <= 1954) return 66;
+                if (birthYear <= 1955) return 66 + 2/12;
+                if (birthYear <= 1956) return 66 + 4/12;
+                if (birthYear <= 1957) return 66 + 6/12;
+                if (birthYear <= 1958) return 66 + 8/12;
+                if (birthYear <= 1959) return 66 + 10/12;
+                return 67;
+            }
+
+            // Adjust benefit based on claiming age vs FRA
+            adjustBenefitForAge(pia, claimAge, fra) {
+                const monthsDiff = (claimAge - fra) * 12;
+
+                if (monthsDiff < 0) {
+                    // Early claiming - reduce benefit
+                    const monthsEarly = Math.abs(monthsDiff);
+                    let reduction = 0;
+
+                    // First 36 months: 5/9 of 1% per month
+                    const first36 = Math.min(monthsEarly, 36);
+                    reduction += first36 * (5/9) / 100;
+
+                    // Beyond 36 months: 5/12 of 1% per month
+                    if (monthsEarly > 36) {
+                        reduction += (monthsEarly - 36) * (5/12) / 100;
+                    }
+
+                    return pia * (1 - reduction);
+                } else if (monthsDiff > 0) {
+                    // Delayed claiming - increase benefit (8% per year)
+                    const delayCredits = (monthsDiff / 12) * 0.08;
+                    return pia * (1 + delayCredits);
+                }
+
+                return pia;
+            }
+
+            // Estimate PIA from income (simplified AIME calculation)
+            estimatePIA(annualIncome, yearsWorked) {
+                // Cap at Social Security maximum
+                const cappedIncome = Math.min(annualIncome, this.maxTaxableEarnings);
+
+                // Estimate AIME (Average Indexed Monthly Earnings)
+                // Simplified: assume income is representative of career average
+                // Real SS uses highest 35 years, indexed for wage growth
+                const effectiveYears = Math.min(yearsWorked, 35);
+                const totalEarnings = cappedIncome * effectiveYears;
+                const aime = totalEarnings / (35 * 12); // Always divide by 420 months
+
+                // Calculate PIA using bend points
+                let pia = 0;
+                if (aime <= this.bendPoint1) {
+                    pia = aime * 0.90;
+                } else if (aime <= this.bendPoint2) {
+                    pia = this.bendPoint1 * 0.90 + (aime - this.bendPoint1) * 0.32;
+                } else {
+                    pia = this.bendPoint1 * 0.90 +
+                          (this.bendPoint2 - this.bendPoint1) * 0.32 +
+                          (aime - this.bendPoint2) * 0.15;
+                }
+
+                return Math.round(pia);
+            }
+
+            // Get annual benefit amount
+            getAnnualBenefit(monthlyBenefit) {
+                return monthlyBenefit * 12;
+            }
+        }
+
         // Life Events Manager
         class LifeEventsManager {
             constructor() {
@@ -744,79 +1321,202 @@
                 return { expense: expenseImpact, income: incomeImpact };
             }
 
-            // Run a single simulation
+            // Calculate effective tax rate for traditional withdrawals
+            calculateTaxRate(withdrawal, ssIncome) {
+                // Simplified progressive tax estimate (2024 brackets, single filer)
+                const totalIncome = withdrawal + (ssIncome * 0.85); // 85% of SS is taxable at higher incomes
+
+                if (totalIncome <= 11600) return 0.10;
+                if (totalIncome <= 47150) return 0.12;
+                if (totalIncome <= 100525) return 0.22;
+                if (totalIncome <= 191950) return 0.24;
+                if (totalIncome <= 243725) return 0.32;
+                if (totalIncome <= 609350) return 0.35;
+                return 0.37;
+            }
+
+            // Run a single simulation with account breakdown
             runSingleSimulation(savePath = false) {
                 const {
                     currentAge,
                     retirementAge,
-                    currentSavings,
-                    annualContribution,
                     expectedReturn,
                     returnVolatility,
                     inflationRate,
                     annualSpending,
-                    yearsInRetirement
+                    yearsInRetirement,
+                    // Simple mode
+                    currentSavings,
+                    annualContribution,
+                    // Advanced mode
+                    advancedMode,
+                    accounts,
+                    contributions,
+                    // Social Security
+                    ssAnnualBenefit,
+                    ssStartAge
                 } = this.params;
 
                 const yearsToRetirement = retirementAge - currentAge;
-                const totalYears = yearsToRetirement + yearsInRetirement;
 
-                let balance = currentSavings;
-                const path = savePath ? [{ age: currentAge, balance: balance }] : null;
+                // Initialize account balances
+                let balances;
+                let contribs;
+
+                if (advancedMode && accounts) {
+                    balances = {
+                        traditional401k: accounts.traditional401k || 0,
+                        roth401k: accounts.roth401k || 0,
+                        traditionalIRA: accounts.traditionalIRA || 0,
+                        rothIRA: accounts.rothIRA || 0,
+                        taxable: accounts.taxable || 0
+                    };
+                    contribs = {
+                        traditional401k: contributions?.traditional401k || 0,
+                        roth401k: contributions?.roth401k || 0,
+                        traditionalIRA: contributions?.traditionalIRA || 0,
+                        rothIRA: contributions?.rothIRA || 0,
+                        taxable: contributions?.taxable || 0
+                    };
+                } else {
+                    // Simple mode - treat all as traditional
+                    balances = {
+                        traditional401k: currentSavings,
+                        roth401k: 0,
+                        traditionalIRA: 0,
+                        rothIRA: 0,
+                        taxable: 0
+                    };
+                    contribs = {
+                        traditional401k: annualContribution,
+                        roth401k: 0,
+                        traditionalIRA: 0,
+                        rothIRA: 0,
+                        taxable: 0
+                    };
+                }
+
+                const getTotalBalance = () => Object.values(balances).reduce((a, b) => a + b, 0);
+                const path = savePath ? [{ age: currentAge, balance: getTotalBalance() }] : null;
 
                 // Accumulation phase (working years)
                 for (let year = 0; year < yearsToRetirement; year++) {
                     const currentAgeInLoop = currentAge + year;
                     const returnRate = this.generateNormalRandom(expectedReturn / 100, returnVolatility / 100);
 
-                    // Apply market returns
-                    balance = balance * (1 + returnRate);
+                    // Apply market returns to all accounts
+                    for (const acct of Object.keys(balances)) {
+                        balances[acct] = balances[acct] * (1 + returnRate);
+                    }
 
                     // Add contributions
-                    balance += annualContribution;
+                    balances.traditional401k += contribs.traditional401k;
+                    balances.roth401k += contribs.roth401k;
+                    balances.traditionalIRA += contribs.traditionalIRA;
+                    balances.rothIRA += contribs.rothIRA;
+                    balances.taxable += contribs.taxable;
 
                     // Apply life events
                     const lifeEventImpact = this.getLifeEventImpact(currentAgeInLoop);
-                    balance += lifeEventImpact.income;
-                    balance -= lifeEventImpact.expense;
+                    // Distribute life event impacts to taxable account
+                    balances.taxable += lifeEventImpact.income;
+                    balances.taxable -= lifeEventImpact.expense;
+                    if (balances.taxable < 0) {
+                        // Pull from traditional if taxable goes negative
+                        const deficit = Math.abs(balances.taxable);
+                        balances.taxable = 0;
+                        balances.traditional401k -= deficit;
+                    }
 
                     if (savePath) {
-                        path.push({ age: currentAgeInLoop + 1, balance: balance });
+                        path.push({ age: currentAgeInLoop + 1, balance: getTotalBalance() });
                     }
                 }
 
                 // Distribution phase (retirement years)
                 let currentSpending = annualSpending;
+                let ssActive = false;
+                let currentSSBenefit = ssAnnualBenefit || 0;
+
                 for (let year = 0; year < yearsInRetirement; year++) {
                     const currentAgeInLoop = retirementAge + year;
                     const returnRate = this.generateNormalRandom(expectedReturn / 100, returnVolatility / 100);
 
-                    // Apply market returns
-                    balance = balance * (1 + returnRate);
-
-                    // Subtract regular spending
-                    balance -= currentSpending;
-
-                    // Apply life events (e.g., part-time work income, medical expenses)
-                    const lifeEventImpact = this.getLifeEventImpact(currentAgeInLoop);
-                    balance += lifeEventImpact.income;
-                    balance -= lifeEventImpact.expense;
-
-                    // Adjust spending for inflation
-                    currentSpending *= (1 + inflationRate / 100);
-
-                    if (savePath) {
-                        path.push({ age: currentAgeInLoop + 1, balance: balance });
+                    // Apply market returns to all accounts
+                    for (const acct of Object.keys(balances)) {
+                        balances[acct] = balances[acct] * (1 + returnRate);
                     }
 
-                    // If balance goes negative, portfolio has failed
-                    if (balance < 0) {
-                        balance = 0;
+                    // Check if SS starts this year
+                    if (ssStartAge && currentAgeInLoop >= ssStartAge && !ssActive) {
+                        ssActive = true;
+                    }
+
+                    // Calculate net spending needed (after SS income)
+                    let ssThisYear = ssActive ? currentSSBenefit : 0;
+                    let netSpendingNeeded = currentSpending - ssThisYear;
+
+                    // Apply life events
+                    const lifeEventImpact = this.getLifeEventImpact(currentAgeInLoop);
+                    netSpendingNeeded -= lifeEventImpact.income;
+                    netSpendingNeeded += lifeEventImpact.expense;
+
+                    // Withdrawal strategy: Taxable first, then Traditional, then Roth
+                    if (netSpendingNeeded > 0) {
+                        // 1. Withdraw from taxable first (most tax-efficient)
+                        if (balances.taxable > 0) {
+                            const taxableWithdraw = Math.min(balances.taxable, netSpendingNeeded);
+                            balances.taxable -= taxableWithdraw;
+                            netSpendingNeeded -= taxableWithdraw;
+                        }
+
+                        // 2. Withdraw from traditional accounts (tax at ordinary rates)
+                        if (netSpendingNeeded > 0 && balances.traditional401k > 0) {
+                            const tradWithdraw = Math.min(balances.traditional401k, netSpendingNeeded);
+                            balances.traditional401k -= tradWithdraw;
+                            netSpendingNeeded -= tradWithdraw;
+                        }
+
+                        if (netSpendingNeeded > 0 && balances.traditionalIRA > 0) {
+                            const iraWithdraw = Math.min(balances.traditionalIRA, netSpendingNeeded);
+                            balances.traditionalIRA -= iraWithdraw;
+                            netSpendingNeeded -= iraWithdraw;
+                        }
+
+                        // 3. Withdraw from Roth last (tax-free, preserve as long as possible)
+                        if (netSpendingNeeded > 0 && balances.roth401k > 0) {
+                            const rothWithdraw = Math.min(balances.roth401k, netSpendingNeeded);
+                            balances.roth401k -= rothWithdraw;
+                            netSpendingNeeded -= rothWithdraw;
+                        }
+
+                        if (netSpendingNeeded > 0 && balances.rothIRA > 0) {
+                            const rothIRAWithdraw = Math.min(balances.rothIRA, netSpendingNeeded);
+                            balances.rothIRA -= rothIRAWithdraw;
+                            netSpendingNeeded -= rothIRAWithdraw;
+                        }
+                    }
+
+                    // Adjust spending and SS for inflation
+                    currentSpending *= (1 + inflationRate / 100);
+                    if (ssActive) {
+                        // SS has COLA adjustments (use same inflation rate for simplicity)
+                        currentSSBenefit *= (1 + inflationRate / 100);
+                    }
+
+                    const totalBalance = getTotalBalance();
+
+                    if (savePath) {
+                        path.push({ age: currentAgeInLoop + 1, balance: totalBalance });
+                    }
+
+                    // If all accounts depleted, portfolio has failed
+                    if (totalBalance <= 0) {
                         break;
                     }
                 }
 
-                return { finalBalance: balance, path: path };
+                return { finalBalance: getTotalBalance(), path: path };
             }
 
             // Run all simulations
@@ -912,8 +1612,13 @@
                 this.histogramChart = null;
                 this.pathsChart = null;
                 this.eventsManager = new LifeEventsManager();
+                this.ssCalculator = new SocialSecurityCalculator();
+                this.advancedMode = false;
+                this.ssMode = 'none'; // 'none', 'known', 'estimate'
                 this.setupEventListeners();
-                // Removed sample events - start with empty state
+                this.setupModeToggle();
+                this.setupSocialSecurity();
+                this.setupSectionToggles();
             }
 
             setupEventListeners() {
@@ -921,18 +1626,44 @@
                     this.runSimulation();
                 });
 
-                // Currency formatting for money inputs
-                const currencyInputs = ['currentSavings', 'annualContribution', 'annualSpending'];
-                currencyInputs.forEach(inputId => {
+                // Currency formatting for simple mode inputs
+                const simpleCurrencyInputs = ['currentSavings', 'annualContribution', 'annualSpending'];
+                simpleCurrencyInputs.forEach(inputId => {
                     const input = document.getElementById(inputId);
-                    input.addEventListener('focus', (e) => {
-                        const value = this.parseCurrencyValue(e.target.value);
-                        e.target.value = value > 0 ? value.toFixed(2) : '';
-                    });
-                    input.addEventListener('blur', (e) => {
-                        const value = this.parseCurrencyValue(e.target.value);
-                        e.target.value = this.formatCurrencyInput(value);
-                    });
+                    if (input) {
+                        input.addEventListener('focus', (e) => {
+                            const value = this.parseCurrencyValue(e.target.value);
+                            e.target.value = value > 0 ? value.toFixed(2) : '';
+                        });
+                        input.addEventListener('blur', (e) => {
+                            const value = this.parseCurrencyValue(e.target.value);
+                            e.target.value = this.formatCurrencyInput(value);
+                        });
+                    }
+                });
+
+                // Currency formatting for advanced mode inputs
+                const advancedCurrencyInputs = [
+                    'traditional401k', 'roth401k', 'traditionalIRA', 'rothIRA', 'taxableBrokerage',
+                    'contribTraditional401k', 'contribRoth401k', 'contribTraditionalIRA', 'contribRothIRA', 'contribTaxable',
+                    'ssMonthlyBenefit', 'ssCurrentIncome'
+                ];
+                advancedCurrencyInputs.forEach(inputId => {
+                    const input = document.getElementById(inputId);
+                    if (input) {
+                        input.addEventListener('focus', (e) => {
+                            const value = this.parseCurrencyValue(e.target.value);
+                            e.target.value = value > 0 ? value.toFixed(2) : '';
+                        });
+                        input.addEventListener('blur', (e) => {
+                            const value = this.parseCurrencyValue(e.target.value);
+                            e.target.value = this.formatCurrencyInput(value);
+                            this.updateAdvancedTotals();
+                        });
+                        input.addEventListener('input', () => {
+                            this.updateAdvancedTotals();
+                        });
+                    }
                 });
 
                 // Life events toggle
@@ -944,6 +1675,192 @@
                 document.getElementById('addEvent').addEventListener('click', () => {
                     this.addLifeEvent();
                 });
+            }
+
+            setupModeToggle() {
+                const simpleBtn = document.getElementById('simpleModeBtn');
+                const advancedBtn = document.getElementById('advancedModeBtn');
+                const simpleInputs = document.getElementById('simpleInputs');
+                const advancedInputs = document.getElementById('advancedInputs');
+
+                simpleBtn.addEventListener('click', () => {
+                    this.advancedMode = false;
+                    simpleBtn.classList.add('active');
+                    simpleBtn.setAttribute('aria-selected', 'true');
+                    advancedBtn.classList.remove('active');
+                    advancedBtn.setAttribute('aria-selected', 'false');
+                    simpleInputs.style.display = 'block';
+                    advancedInputs.style.display = 'none';
+                });
+
+                advancedBtn.addEventListener('click', () => {
+                    this.advancedMode = true;
+                    advancedBtn.classList.add('active');
+                    advancedBtn.setAttribute('aria-selected', 'true');
+                    simpleBtn.classList.remove('active');
+                    simpleBtn.setAttribute('aria-selected', 'false');
+                    simpleInputs.style.display = 'none';
+                    advancedInputs.style.display = 'block';
+                    this.updateAdvancedTotals();
+                });
+            }
+
+            setupSectionToggles() {
+                // Collapsible sections
+                const sections = [
+                    { header: 'savingsHeader', content: 'savingsContent' },
+                    { header: 'contributionsHeader', content: 'contributionsContent' },
+                    { header: 'ssHeader', content: 'ssContent' }
+                ];
+
+                sections.forEach(({ header, content }) => {
+                    const headerEl = document.getElementById(header);
+                    const contentEl = document.getElementById(content);
+                    if (headerEl && contentEl) {
+                        headerEl.addEventListener('click', () => {
+                            const isExpanded = contentEl.classList.toggle('show');
+                            headerEl.classList.toggle('expanded', isExpanded);
+                            headerEl.setAttribute('aria-expanded', isExpanded);
+                        });
+                    }
+                });
+            }
+
+            setupSocialSecurity() {
+                const ssNoneBtn = document.getElementById('ssNoneBtn');
+                const ssKnownBtn = document.getElementById('ssKnownBtn');
+                const ssEstimateBtn = document.getElementById('ssEstimateBtn');
+                const ssKnownInputs = document.getElementById('ssKnownInputs');
+                const ssEstimateInputs = document.getElementById('ssEstimateInputs');
+
+                const updateSSMode = (mode) => {
+                    this.ssMode = mode;
+                    [ssNoneBtn, ssKnownBtn, ssEstimateBtn].forEach(btn => btn.classList.remove('active'));
+                    ssKnownInputs.classList.remove('show');
+                    ssEstimateInputs.classList.remove('show');
+
+                    if (mode === 'none') {
+                        ssNoneBtn.classList.add('active');
+                    } else if (mode === 'known') {
+                        ssKnownBtn.classList.add('active');
+                        ssKnownInputs.classList.add('show');
+                        this.updateKnownSSBenefit();
+                    } else if (mode === 'estimate') {
+                        ssEstimateBtn.classList.add('active');
+                        ssEstimateInputs.classList.add('show');
+                        this.updateEstimatedSSBenefit();
+                    }
+                };
+
+                ssNoneBtn.addEventListener('click', () => updateSSMode('none'));
+                ssKnownBtn.addEventListener('click', () => updateSSMode('known'));
+                ssEstimateBtn.addEventListener('click', () => updateSSMode('estimate'));
+
+                // Update SS benefit when inputs change
+                ['ssMonthlyBenefit', 'ssStartAge'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.addEventListener('input', () => this.updateKnownSSBenefit());
+                        el.addEventListener('blur', () => this.updateKnownSSBenefit());
+                    }
+                });
+
+                ['ssCurrentIncome', 'ssWorkYears', 'ssEstStartAge'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.addEventListener('input', () => this.updateEstimatedSSBenefit());
+                        el.addEventListener('blur', () => this.updateEstimatedSSBenefit());
+                    }
+                });
+
+                // Set default to "Don't Include"
+                updateSSMode('none');
+            }
+
+            updateKnownSSBenefit() {
+                const pia = this.parseCurrencyValue(document.getElementById('ssMonthlyBenefit').value);
+                const startAge = parseInt(document.getElementById('ssStartAge').value) || 67;
+                const currentAge = parseInt(document.getElementById('currentAge').value) || 35;
+                const birthYear = new Date().getFullYear() - currentAge;
+
+                const fra = this.ssCalculator.getFullRetirementAge(birthYear);
+                const adjustedBenefit = this.ssCalculator.adjustBenefitForAge(pia, startAge, fra);
+
+                document.getElementById('ssAdjustedBenefit').textContent =
+                    '$' + Math.round(adjustedBenefit).toLocaleString() + '/mo';
+            }
+
+            updateEstimatedSSBenefit() {
+                const income = this.parseCurrencyValue(document.getElementById('ssCurrentIncome').value);
+                const workYears = parseInt(document.getElementById('ssWorkYears').value) || 15;
+                const startAge = parseInt(document.getElementById('ssEstStartAge').value) || 67;
+                const currentAge = parseInt(document.getElementById('currentAge').value) || 35;
+                const birthYear = new Date().getFullYear() - currentAge;
+
+                const pia = this.ssCalculator.estimatePIA(income, workYears);
+                const fra = this.ssCalculator.getFullRetirementAge(birthYear);
+                const adjustedBenefit = this.ssCalculator.adjustBenefitForAge(pia, startAge, fra);
+
+                document.getElementById('ssEstimatedBenefit').textContent =
+                    '$' + Math.round(adjustedBenefit).toLocaleString() + '/mo';
+            }
+
+            updateAdvancedTotals() {
+                // Update savings totals
+                const trad401k = this.parseCurrencyValue(document.getElementById('traditional401k').value);
+                const roth401k = this.parseCurrencyValue(document.getElementById('roth401k').value);
+                const tradIRA = this.parseCurrencyValue(document.getElementById('traditionalIRA').value);
+                const rothIRA = this.parseCurrencyValue(document.getElementById('rothIRA').value);
+                const taxable = this.parseCurrencyValue(document.getElementById('taxableBrokerage').value);
+
+                const totalPreTax = trad401k + tradIRA;
+                const totalRoth = roth401k + rothIRA;
+                const totalSavings = totalPreTax + totalRoth + taxable;
+
+                document.getElementById('totalPreTax').textContent = this.formatCurrencyInput(totalPreTax);
+                document.getElementById('totalRoth').textContent = this.formatCurrencyInput(totalRoth);
+                document.getElementById('totalTaxable').textContent = this.formatCurrencyInput(taxable);
+                document.getElementById('totalSavings').textContent = this.formatCurrencyInput(totalSavings);
+
+                // Update contributions totals
+                const cTrad401k = this.parseCurrencyValue(document.getElementById('contribTraditional401k').value);
+                const cRoth401k = this.parseCurrencyValue(document.getElementById('contribRoth401k').value);
+                const cTradIRA = this.parseCurrencyValue(document.getElementById('contribTraditionalIRA').value);
+                const cRothIRA = this.parseCurrencyValue(document.getElementById('contribRothIRA').value);
+                const cTaxable = this.parseCurrencyValue(document.getElementById('contribTaxable').value);
+
+                const totalContributions = cTrad401k + cRoth401k + cTradIRA + cRothIRA + cTaxable;
+                document.getElementById('totalContributions').textContent = this.formatCurrencyInput(totalContributions);
+            }
+
+            getSSParams() {
+                if (this.ssMode === 'none') {
+                    return { ssAnnualBenefit: 0, ssStartAge: null };
+                }
+
+                const currentAge = parseInt(document.getElementById('currentAge').value) || 35;
+                const birthYear = new Date().getFullYear() - currentAge;
+                const fra = this.ssCalculator.getFullRetirementAge(birthYear);
+
+                if (this.ssMode === 'known') {
+                    const pia = this.parseCurrencyValue(document.getElementById('ssMonthlyBenefit').value);
+                    const startAge = parseInt(document.getElementById('ssStartAge').value) || 67;
+                    const adjustedMonthly = this.ssCalculator.adjustBenefitForAge(pia, startAge, fra);
+                    return {
+                        ssAnnualBenefit: adjustedMonthly * 12,
+                        ssStartAge: startAge
+                    };
+                } else {
+                    const income = this.parseCurrencyValue(document.getElementById('ssCurrentIncome').value);
+                    const workYears = parseInt(document.getElementById('ssWorkYears').value) || 15;
+                    const startAge = parseInt(document.getElementById('ssEstStartAge').value) || 67;
+                    const pia = this.ssCalculator.estimatePIA(income, workYears);
+                    const adjustedMonthly = this.ssCalculator.adjustBenefitForAge(pia, startAge, fra);
+                    return {
+                        ssAnnualBenefit: adjustedMonthly * 12,
+                        ssStartAge: startAge
+                    };
+                }
             }
 
             toggleEventsPanel() {
@@ -1062,18 +1979,46 @@
             }
 
             getInputValues() {
-                return {
+                const baseParams = {
                     currentAge: parseInt(document.getElementById('currentAge').value),
                     retirementAge: parseInt(document.getElementById('retirementAge').value),
-                    currentSavings: this.parseCurrencyValue(document.getElementById('currentSavings').value),
-                    annualContribution: this.parseCurrencyValue(document.getElementById('annualContribution').value),
                     expectedReturn: parseFloat(document.getElementById('expectedReturn').value),
                     returnVolatility: parseFloat(document.getElementById('returnVolatility').value),
                     inflationRate: parseFloat(document.getElementById('inflationRate').value),
                     annualSpending: this.parseCurrencyValue(document.getElementById('annualSpending').value),
                     yearsInRetirement: parseInt(document.getElementById('yearsInRetirement').value),
-                    numSimulations: parseInt(document.getElementById('numSimulations').value)
+                    numSimulations: parseInt(document.getElementById('numSimulations').value),
+                    advancedMode: this.advancedMode,
+                    ...this.getSSParams()
                 };
+
+                if (this.advancedMode) {
+                    // Get account breakdown
+                    return {
+                        ...baseParams,
+                        accounts: {
+                            traditional401k: this.parseCurrencyValue(document.getElementById('traditional401k').value),
+                            roth401k: this.parseCurrencyValue(document.getElementById('roth401k').value),
+                            traditionalIRA: this.parseCurrencyValue(document.getElementById('traditionalIRA').value),
+                            rothIRA: this.parseCurrencyValue(document.getElementById('rothIRA').value),
+                            taxable: this.parseCurrencyValue(document.getElementById('taxableBrokerage').value)
+                        },
+                        contributions: {
+                            traditional401k: this.parseCurrencyValue(document.getElementById('contribTraditional401k').value),
+                            roth401k: this.parseCurrencyValue(document.getElementById('contribRoth401k').value),
+                            traditionalIRA: this.parseCurrencyValue(document.getElementById('contribTraditionalIRA').value),
+                            rothIRA: this.parseCurrencyValue(document.getElementById('contribRothIRA').value),
+                            taxable: this.parseCurrencyValue(document.getElementById('contribTaxable').value)
+                        }
+                    };
+                } else {
+                    // Simple mode - use totals
+                    return {
+                        ...baseParams,
+                        currentSavings: this.parseCurrencyValue(document.getElementById('currentSavings').value),
+                        annualContribution: this.parseCurrencyValue(document.getElementById('annualContribution').value)
+                    };
+                }
             }
 
             validateInputs(params) {
@@ -1081,10 +2026,27 @@
                     alert('Retirement age must be greater than current age');
                     return false;
                 }
-                if (params.currentSavings < 0 || params.annualContribution < 0 || params.annualSpending < 0) {
-                    alert('Financial values cannot be negative');
+
+                if (params.advancedMode) {
+                    // Check advanced mode values
+                    const accountValues = Object.values(params.accounts || {});
+                    const contribValues = Object.values(params.contributions || {});
+                    if (accountValues.some(v => v < 0) || contribValues.some(v => v < 0)) {
+                        alert('Financial values cannot be negative');
+                        return false;
+                    }
+                } else {
+                    if (params.currentSavings < 0 || params.annualContribution < 0) {
+                        alert('Financial values cannot be negative');
+                        return false;
+                    }
+                }
+
+                if (params.annualSpending < 0) {
+                    alert('Annual spending cannot be negative');
                     return false;
                 }
+
                 if (params.numSimulations < 100) {
                     alert('Please run at least 100 simulations for meaningful results');
                     return false;
