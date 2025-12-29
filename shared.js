@@ -262,10 +262,15 @@ const SessionManager = {
     /**
      * Import session data from a JSON object
      * @param {Object} session - The session object to import
-     * @returns {Object} Result with success status and any warnings
+     * @returns {Object} Result with success status, warnings, and session metadata
      */
     importSession(session) {
-        const result = { success: false, warnings: [], imported: [] };
+        const result = { success: false, warnings: [], imported: [], exportedAt: null };
+
+        // Capture the session export timestamp
+        if (session.exportedAt) {
+            result.exportedAt = session.exportedAt;
+        }
 
         // Validate version
         if (!session.version) {
@@ -553,12 +558,29 @@ const SessionManager = {
             document.getElementById('loadSessionBtn').addEventListener('click', () => {
                 this.promptImport((result) => {
                     if (result.success) {
-                        this.showToast(`Loaded: ${result.imported.join(', ')}`, 'success', 4000);
+                        // Format the session date/time for display
+                        let sessionDateStr = '';
+                        if (result.exportedAt) {
+                            const sessionDate = new Date(result.exportedAt);
+                            sessionDateStr = sessionDate.toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                        }
+
+                        // Show confirmation banner
+                        this.showSessionLoadedBanner(sessionDateStr, result.imported);
+
                         if (onImport) {
                             onImport(result);
                         } else {
-                            // Default: reload page to reflect changes
-                            setTimeout(() => window.location.reload(), 1000);
+                            // Default: reload page to reflect changes after user sees the banner
+                            setTimeout(() => window.location.reload(), 3000);
                         }
                     } else if (result.error) {
                         this.showToast(result.error, 'error');
@@ -568,5 +590,126 @@ const SessionManager = {
                 });
             });
         }
+    },
+
+    /**
+     * Show a prominent banner when session is loaded
+     * @param {string} sessionDateStr - Formatted date string of the session
+     * @param {Array} imported - List of imported items
+     */
+    showSessionLoadedBanner(sessionDateStr, imported) {
+        // Remove any existing banner
+        const existing = document.querySelector('.session-loaded-banner');
+        if (existing) existing.remove();
+
+        // Inject banner styles if not already present
+        if (!document.getElementById('session-banner-styles')) {
+            const style = document.createElement('style');
+            style.id = 'session-banner-styles';
+            style.textContent = `
+                .session-loaded-banner {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    color: white;
+                    padding: 20px;
+                    z-index: 10001;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                    animation: slideDown 0.4s ease;
+                    text-align: center;
+                }
+
+                .session-loaded-banner h3 {
+                    margin: 0 0 8px 0;
+                    font-size: 1.3em;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                }
+
+                .session-loaded-banner .session-date {
+                    font-size: 1.1em;
+                    opacity: 0.95;
+                    margin-bottom: 8px;
+                }
+
+                .session-loaded-banner .session-items {
+                    font-size: 0.9em;
+                    opacity: 0.85;
+                }
+
+                .session-loaded-banner .dismiss-btn {
+                    position: absolute;
+                    top: 10px;
+                    right: 15px;
+                    background: rgba(255, 255, 255, 0.2);
+                    border: none;
+                    color: white;
+                    font-size: 1.2em;
+                    cursor: pointer;
+                    padding: 5px 10px;
+                    border-radius: 4px;
+                    transition: background 0.2s;
+                }
+
+                .session-loaded-banner .dismiss-btn:hover {
+                    background: rgba(255, 255, 255, 0.3);
+                }
+
+                @keyframes slideDown {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-100%);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Create banner element
+        const banner = document.createElement('div');
+        banner.className = 'session-loaded-banner';
+        banner.setAttribute('role', 'alert');
+        banner.setAttribute('aria-live', 'assertive');
+
+        let dateDisplay = sessionDateStr
+            ? `<div class="session-date">Session from: <strong>${sessionDateStr}</strong></div>`
+            : '';
+
+        let itemsDisplay = imported && imported.length > 0
+            ? `<div class="session-items">Restored: ${imported.join(', ')}</div>`
+            : '';
+
+        banner.innerHTML = `
+            <button class="dismiss-btn" aria-label="Dismiss notification">&times;</button>
+            <h3><span aria-hidden="true">✓</span> Previous Session Loaded Successfully</h3>
+            ${dateDisplay}
+            ${itemsDisplay}
+        `;
+
+        document.body.appendChild(banner);
+
+        // Bind dismiss button
+        banner.querySelector('.dismiss-btn').addEventListener('click', () => {
+            banner.style.opacity = '0';
+            banner.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => banner.remove(), 300);
+        });
+
+        // Auto-dismiss after 8 seconds
+        setTimeout(() => {
+            if (document.body.contains(banner)) {
+                banner.style.opacity = '0';
+                banner.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => banner.remove(), 300);
+            }
+        }, 8000);
     }
 };
