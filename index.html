@@ -2486,18 +2486,31 @@
                 (result) => {
                     // Reload saved retirement forecast data and update UI
                     const savedForecast = StorageUtils.get('retirementForecastData');
+                    let forecastUpdated = false;
+
                     if (savedForecast) {
-                        // Restore all input fields
-                        if (savedForecast.currentAge) document.getElementById('currentAge').value = savedForecast.currentAge;
-                        if (savedForecast.retirementAge) document.getElementById('retirementAge').value = savedForecast.retirementAge;
-                        if (savedForecast.currentSavings) document.getElementById('currentSavings').value = ui.formatCurrencyInput(savedForecast.currentSavings);
-                        if (savedForecast.annualContribution) document.getElementById('annualContribution').value = ui.formatCurrencyInput(savedForecast.annualContribution);
-                        if (savedForecast.expectedReturn) document.getElementById('expectedReturn').value = savedForecast.expectedReturn;
-                        if (savedForecast.returnVolatility) document.getElementById('returnVolatility').value = savedForecast.returnVolatility;
-                        if (savedForecast.inflationRate) document.getElementById('inflationRate').value = savedForecast.inflationRate;
-                        if (savedForecast.annualSpending) document.getElementById('annualSpending').value = ui.formatCurrencyInput(savedForecast.annualSpending);
-                        if (savedForecast.yearsInRetirement) document.getElementById('yearsInRetirement').value = savedForecast.yearsInRetirement;
-                        if (savedForecast.numSimulations) document.getElementById('numSimulations').value = savedForecast.numSimulations;
+                        // Helper to set input value and trigger event
+                        const setInputValue = (id, value, formatter = null) => {
+                            const el = document.getElementById(id);
+                            if (el && value !== undefined && value !== null) {
+                                el.value = formatter ? formatter(value) : value;
+                                el.dispatchEvent(new Event('input', { bubbles: true }));
+                                return true;
+                            }
+                            return false;
+                        };
+
+                        // Restore all input fields with event dispatch
+                        forecastUpdated = setInputValue('currentAge', savedForecast.currentAge) || forecastUpdated;
+                        forecastUpdated = setInputValue('retirementAge', savedForecast.retirementAge) || forecastUpdated;
+                        forecastUpdated = setInputValue('currentSavings', savedForecast.currentSavings, ui.formatCurrencyInput.bind(ui)) || forecastUpdated;
+                        forecastUpdated = setInputValue('annualContribution', savedForecast.annualContribution, ui.formatCurrencyInput.bind(ui)) || forecastUpdated;
+                        forecastUpdated = setInputValue('expectedReturn', savedForecast.expectedReturn) || forecastUpdated;
+                        forecastUpdated = setInputValue('returnVolatility', savedForecast.returnVolatility) || forecastUpdated;
+                        forecastUpdated = setInputValue('inflationRate', savedForecast.inflationRate) || forecastUpdated;
+                        forecastUpdated = setInputValue('annualSpending', savedForecast.annualSpending, ui.formatCurrencyInput.bind(ui)) || forecastUpdated;
+                        forecastUpdated = setInputValue('yearsInRetirement', savedForecast.yearsInRetirement) || forecastUpdated;
+                        forecastUpdated = setInputValue('numSimulations', savedForecast.numSimulations) || forecastUpdated;
                     }
 
                     // Load saved life events
@@ -2518,7 +2531,7 @@
                         });
                     }
 
-                    if (savedForecast || savedLifeEvents.length > 0) {
+                    if (forecastUpdated || savedLifeEvents.length > 0) {
                         SessionManager.showToast('Retirement forecast restored!', 'success');
                     } else {
                         // Fallback to reload if no data found

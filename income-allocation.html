@@ -1282,10 +1282,14 @@
                     // Reload saved budget planner data and update UI
                     const savedData = StorageUtils.get('budgetPlannerData');
                     if (savedData) {
-                        // Restore income
+                        // Restore income - always use monthly frequency since monthlyIncome is pre-calculated
                         if (savedData.monthlyIncome) {
-                            document.getElementById('income').value = allocator.formatCurrencyInput(savedData.monthlyIncome);
-                            document.getElementById('incomeFrequency').value = savedData.frequency || 'monthly';
+                            const incomeInput = document.getElementById('income');
+                            const freqInput = document.getElementById('incomeFrequency');
+                            incomeInput.value = allocator.formatCurrencyInput(savedData.monthlyIncome);
+                            freqInput.value = 'monthly';
+                            // Trigger input event to ensure allocator picks up the change
+                            incomeInput.dispatchEvent(new Event('input', { bubbles: true }));
                         }
 
                         // Restore allocations
