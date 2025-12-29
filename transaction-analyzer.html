@@ -2708,6 +2708,50 @@ Respond with ONLY a JSON array in this exact format, no other text:
                     StorageUtils.set(`apiKey_${provider}`, e.target.value.trim());
                 }
             });
+
+            // Load saved transactions if available
+            const savedTransactions = StorageUtils.get('transactionData', []);
+            if (savedTransactions.length > 0) {
+                analyzer.transactions = savedTransactions;
+                analyzer.analyze();
+            }
+
+            // Load saved bank format
+            const savedFormat = StorageUtils.get('bankFormat', 'chase');
+            document.getElementById('bankFormat').value = savedFormat;
+            analyzer.selectedFormat = savedFormat;
+
+            // Initialize session toolbar
+            SessionManager.initToolbar(
+                // Get current page data for export
+                () => {
+                    // Save current transactions to localStorage
+                    if (analyzer.transactions.length > 0) {
+                        StorageUtils.set('transactionData', analyzer.transactions);
+                    }
+
+                    // Save bank format preference
+                    StorageUtils.set('bankFormat', analyzer.selectedFormat);
+
+                    return {
+                        transactions: analyzer.transactions,
+                        bankFormat: analyzer.selectedFormat,
+                        targets: analyzer.targets
+                    };
+                },
+                // Handle import
+                (result) => {
+                    // Check if we have transaction data in the imported session
+                    const session = StorageUtils.get('transactionData', []);
+                    if (session.length > 0) {
+                        analyzer.transactions = session;
+                        analyzer.analyze();
+                        SessionManager.showToast('Transactions restored!', 'success');
+                    } else {
+                        window.location.reload();
+                    }
+                }
+            );
         });
     </script>
 </body>
