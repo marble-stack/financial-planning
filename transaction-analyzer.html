@@ -1226,6 +1226,20 @@
                         </div>
                     </div>
                     <p class="guidance-tip">Tip: Export 3-6 months of data for the most accurate monthly averages</p>
+
+                    <div style="background: #fff4e6; border: 1px solid #ffb020; border-radius: 6px; padding: 15px; margin-top: 15px;">
+                        <strong style="color: #b45309; display: block; margin-bottom: 8px;">&#128200; How to Export Multiple Statements:</strong>
+                        <ul style="color: #92400e; font-size: 0.9em; margin: 0; padding-left: 20px; line-height: 1.6;">
+                            <li><strong>Chase:</strong> Log in → Activity → Select account → Download → Choose date range → CSV format</li>
+                            <li><strong>Bank of America:</strong> Accounts → Select account → Export Transactions → CSV</li>
+                            <li><strong>Wells Fargo:</strong> Accounts → Select account → Download Transactions → CSV</li>
+                            <li><strong>Citi:</strong> Account Activity → Download → CSV</li>
+                            <li><strong>American Express:</strong> Account → Statements & Activity → Download → CSV</li>
+                            <li><strong>Capital One:</strong> Transactions → Download → CSV</li>
+                        </ul>
+                        <p style="margin: 10px 0 5px 0; color: #b45309; font-size: 0.9em;"><strong>&#10004; Multiple File Upload:</strong> You can select and upload multiple CSV files at once (Ctrl/Cmd+Click to select multiple files)</p>
+                        <p style="margin: 5px 0 0 0; color: #b45309; font-size: 0.85em; font-style: italic;">&#9888; Automatic Deduplication: Inter-account transfers (like credit card payments from checking) are automatically detected and excluded from income/spending totals to prevent double-counting.</p>
+                    </div>
                 </div>
 
                 <div class="upload-area" id="uploadArea">
@@ -1322,6 +1336,7 @@
                                     <option value="guilt-free">Guilt-Free Spending</option>
                                     <option value="income">Income</option>
                                     <option value="uncategorized">Uncategorized</option>
+                                    <option value="transfers">Transfers (Excluded)</option>
                                 </select>
                                 <select class="filter-select" id="sortOrder">
                                     <option value="date-desc">Date (Newest)</option>
@@ -1599,6 +1614,9 @@
                     this.transactions = results.flat();
                     this.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+                    // Deduplicate inter-account transfers
+                    this.deduplicateTransfers();
+
                     // Auto-categorize
                     this.transactions.forEach(t => {
                         if (!t.category) {
@@ -1629,12 +1647,15 @@
                 if (existingInfo) existingInfo.remove();
 
                 // Create success message
+                const transferCount = this.transactions.filter(t => t.isTransfer).length;
                 const successInfo = document.createElement('div');
                 successInfo.className = 'upload-success-info';
-                successInfo.innerHTML = `
-                    <strong>Successfully loaded ${transactionCount} transactions!</strong>
-                    <span>Files: ${fileNames.map(n => this.escapeHtml(n)).join(', ')}</span>
-                `;
+                let message = `<strong>Successfully loaded ${transactionCount} transactions!</strong>`;
+                if (transferCount > 0) {
+                    message += `<span style="color: #10b981; font-size: 0.9em; margin-top: 5px; display: block;">&#10004; ${transferCount} inter-account transfers detected and excluded from totals</span>`;
+                }
+                message += `<span style="margin-top: 5px; display: block;">Files: ${fileNames.map(n => this.escapeHtml(n)).join(', ')}</span>`;
+                successInfo.innerHTML = message;
                 uploadArea.parentNode.insertBefore(successInfo, uploadArea.nextSibling);
 
                 // Update upload area text
@@ -1811,6 +1832,76 @@
                 return 'uncategorized';
             }
 
+            deduplicateTransfers() {
+                // Mark inter-account transfers as duplicates
+                // A transfer is detected when:
+                // 1. Two transactions have similar amounts (one positive, one negative)
+                // 2. Dates are within 5 days of each other
+                // 3. Amounts match within $0.50 tolerance
+
+                const DAYS_TOLERANCE = 5;
+                const AMOUNT_TOLERANCE = 0.50;
+
+                // Reset all isTransfer flags
+                this.transactions.forEach(t => t.isTransfer = false);
+
+                for (let i = 0; i < this.transactions.length; i++) {
+                    const t1 = this.transactions[i];
+                    if (t1.isTransfer) continue; // Already marked as transfer
+
+                    for (let j = i + 1; j < this.transactions.length; j++) {
+                        const t2 = this.transactions[j];
+                        if (t2.isTransfer) continue; // Already marked as transfer
+
+                        // Check if amounts are opposite (one positive, one negative) and similar magnitude
+                        const amountMatch = Math.abs(Math.abs(t1.amount) - Math.abs(t2.amount)) <= AMOUNT_TOLERANCE;
+                        const oppositeSign = (t1.amount > 0) !== (t2.amount > 0);
+
+                        if (!amountMatch || !oppositeSign) continue;
+
+                        // Check date proximity
+                        const date1 = new Date(t1.date);
+                        const date2 = new Date(t2.date);
+                        const daysDiff = Math.abs((date1 - date2) / (1000 * 60 * 60 * 24));
+
+                        if (daysDiff > DAYS_TOLERANCE) continue;
+
+                        // Check if descriptions suggest a transfer
+                        const desc1 = t1.description.toLowerCase();
+                        const desc2 = t2.description.toLowerCase();
+
+                        // Common transfer keywords
+                        const transferKeywords = [
+                            'transfer', 'payment', 'autopay', 'online payment',
+                            'debit card purchase', 'credit card payment', 'electronic payment',
+                            'ach', 'zelle', 'venmo', 'paypal', 'check'
+                        ];
+
+                        const hasTransferKeyword = transferKeywords.some(kw =>
+                            desc1.includes(kw) || desc2.includes(kw)
+                        );
+
+                        // If all conditions match, or if transfer keywords are present, mark both as transfers
+                        if (amountMatch && oppositeSign && daysDiff <= DAYS_TOLERANCE) {
+                            // Higher confidence match - mark as transfers
+                            if (hasTransferKeyword || daysDiff <= 2) {
+                                t1.isTransfer = true;
+                                t2.isTransfer = true;
+                                t1.transferMatch = t2.id;
+                                t2.transferMatch = t1.id;
+                                break; // Move to next transaction
+                            }
+                        }
+                    }
+                }
+
+                // Log deduplication results
+                const transferCount = this.transactions.filter(t => t.isTransfer).length;
+                if (transferCount > 0) {
+                    console.log(`Detected and marked ${transferCount} inter-account transfer transactions`);
+                }
+            }
+
             updateDisplay() {
                 this.updateStats();
                 this.updateSummaryCards();
@@ -1820,7 +1911,7 @@
             }
 
             updateBulkCategorization() {
-                const uncategorized = this.transactions.filter(t => t.category === 'uncategorized');
+                const uncategorized = this.transactions.filter(t => t.category === 'uncategorized' && !t.isTransfer);
                 const section = document.getElementById('bulkCategorizeSection');
                 const container = document.getElementById('bulkGroups');
 
@@ -1925,17 +2016,24 @@
                 document.getElementById('dateRange').textContent =
                     `Showing transactions from ${minDate.toLocaleDateString()} to ${maxDate.toLocaleDateString()}`;
 
-                const totalIncome = this.transactions
+                // Exclude inter-account transfers from income/spending calculations
+                const nonTransferTransactions = this.transactions.filter(t => !t.isTransfer);
+
+                const totalIncome = nonTransferTransactions
                     .filter(t => t.amount > 0)
                     .reduce((sum, t) => sum + t.amount, 0);
 
-                const totalSpending = this.transactions
+                const totalSpending = nonTransferTransactions
                     .filter(t => t.amount < 0)
                     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
                 const net = totalIncome - totalSpending;
 
-                document.getElementById('totalTransactions').textContent = this.transactions.length;
+                const transferCount = this.transactions.filter(t => t.isTransfer).length;
+                const displayCount = nonTransferTransactions.length;
+
+                document.getElementById('totalTransactions').textContent =
+                    transferCount > 0 ? `${displayCount} (${transferCount} transfers excluded)` : displayCount;
                 document.getElementById('totalIncome').textContent = this.formatCurrency(totalIncome);
                 document.getElementById('totalSpending').textContent = this.formatCurrency(totalSpending);
 
@@ -2074,14 +2172,17 @@
             calculateCategoryTotals() {
                 const totals = {};
 
-                this.transactions.forEach(t => {
-                    const cat = t.category || 'uncategorized';
-                    if (!totals[cat]) {
-                        totals[cat] = { total: 0, count: 0 };
-                    }
-                    totals[cat].total += Math.abs(t.amount);
-                    totals[cat].count++;
-                });
+                // Exclude inter-account transfers from category totals
+                this.transactions
+                    .filter(t => !t.isTransfer)
+                    .forEach(t => {
+                        const cat = t.category || 'uncategorized';
+                        if (!totals[cat]) {
+                            totals[cat] = { total: 0, count: 0 };
+                        }
+                        totals[cat].total += Math.abs(t.amount);
+                        totals[cat].count++;
+                    });
 
                 return totals;
             }
@@ -2093,8 +2194,13 @@
                 let filtered = [...this.transactions];
 
                 // Apply category filter
-                if (categoryFilter !== 'all') {
-                    filtered = filtered.filter(t => t.category === categoryFilter);
+                if (categoryFilter === 'transfers') {
+                    filtered = filtered.filter(t => t.isTransfer);
+                } else if (categoryFilter !== 'all') {
+                    filtered = filtered.filter(t => t.category === categoryFilter && !t.isTransfer);
+                } else {
+                    // For 'all', exclude transfers by default unless specifically viewing them
+                    filtered = filtered.filter(t => !t.isTransfer);
                 }
 
                 // Apply sort
@@ -2123,6 +2229,7 @@
 
                 filtered.forEach(t => {
                     const isExpense = t.amount < 0;
+                    const transferBadge = t.isTransfer ? '<span style="background: #6b7280; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-left: 8px;">TRANSFER</span>' : '';
                     const categoryOptions = `
                         <option value="fixed-costs" ${t.category === 'fixed-costs' ? 'selected' : ''}>Fixed Costs</option>
                         <option value="short-term" ${t.category === 'short-term' ? 'selected' : ''}>Short-Term Savings</option>
@@ -2136,14 +2243,16 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${new Date(t.date).toLocaleDateString()}</td>
-                        <td>${this.escapeHtml(t.description)}</td>
+                        <td>${this.escapeHtml(t.description)}${transferBadge}</td>
                         <td class="amount-cell ${isExpense ? 'expense' : 'income'}">
                             ${isExpense ? '-' : '+'}${this.formatCurrency(Math.abs(t.amount))}
                         </td>
                         <td>
+                            ${t.isTransfer ? '<span style="color: #6b7280; font-style: italic;">Inter-account transfer</span>' : `
                             <select class="category-select" data-id="${t.id}" onchange="analyzer.updateCategory(this)">
                                 ${categoryOptions}
                             </select>
+                            `}
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -2153,7 +2262,7 @@
                     card.className = 'transaction-card';
                     card.innerHTML = `
                         <div class="transaction-card-header">
-                            <span class="transaction-card-desc">${this.escapeHtml(t.description)}</span>
+                            <span class="transaction-card-desc">${this.escapeHtml(t.description)}${transferBadge}</span>
                             <span class="transaction-card-amount ${isExpense ? 'expense' : 'income'}">
                                 ${isExpense ? '-' : '+'}${this.formatCurrency(Math.abs(t.amount))}
                             </span>
@@ -2161,9 +2270,11 @@
                         <div class="transaction-card-footer">
                             <span class="transaction-card-date">${new Date(t.date).toLocaleDateString()}</span>
                             <div class="transaction-card-category">
+                                ${t.isTransfer ? '<span style="color: #6b7280; font-style: italic;">Inter-account transfer</span>' : `
                                 <select data-id="${t.id}" onchange="analyzer.updateCategory(this)">
                                     ${categoryOptions}
                                 </select>
+                                `}
                             </div>
                         </div>
                     `;
