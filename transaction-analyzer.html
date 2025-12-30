@@ -3159,7 +3159,7 @@ Return ONLY a JSON object (no markdown, no explanation):
                     <div class="savings-rate">
                         <span class="savings-label">Savings Rate:</span>
                         <span class="savings-value ${savingsRate >= targetSavingsRate ? 'positive' : 'negative'}">${savingsRate.toFixed(1)}%</span>
-                        <span class="savings-target">(Target: ${targetSavingsRate}%)</span>
+                        <span class="savings-target">(Target: ${targetSavingsRate.toFixed(1)}%)</span>
                     </div>
                 `;
                 chartContainer.appendChild(savingsRow);
