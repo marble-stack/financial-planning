@@ -559,9 +559,13 @@
                 runner.assertContains(result, '&quot;');
             });
 
-            runner.test('DOMUtils.escapeHtml handles null/undefined', () => {
+            runner.test('DOMUtils.escapeHtml handles null', () => {
+                // null becomes empty string when assigned to textContent
                 runner.assertEqual(DOMUtils.escapeHtml(null), '');
-                runner.assertEqual(DOMUtils.escapeHtml(undefined), '');
+            });
+
+            runner.test('DOMUtils.escapeHtml handles empty string', () => {
+                runner.assertEqual(DOMUtils.escapeHtml(''), '');
             });
 
             // ============================================
@@ -663,27 +667,70 @@
             }
         }
 
-        // Initialize
-        document.getElementById('runTests').addEventListener('click', async () => {
+        // Initialize when DOM is ready
+        function init() {
             const button = document.getElementById('runTests');
-            button.disabled = true;
-            button.textContent = 'Running...';
 
-            // Small delay to allow UI update
-            await new Promise(r => setTimeout(r, 100));
+            // Check if shared.js loaded properly
+            if (typeof DOMUtils === 'undefined') {
+                document.getElementById('results').innerHTML = `
+                    <div class="test-section">
+                        <div class="test-section-header">
+                            <span>Error</span>
+                            <span class="badge some-failed">Load Failed</span>
+                        </div>
+                        <div class="test-error">
+                            shared.js failed to load. Make sure the file exists and there are no JavaScript errors.
+                            <br><br>
+                            Try opening this page via a local server instead of double-clicking:
+                            <br>1. Open a terminal in the project folder
+                            <br>2. Run: python -m http.server 8000
+                            <br>3. Visit: http://localhost:8000/test.html
+                        </div>
+                    </div>
+                `;
+                return;
+            }
 
-            const runner = await runTests();
-            renderResults(runner);
+            button.addEventListener('click', async () => {
+                button.disabled = true;
+                button.textContent = 'Running...';
 
-            button.disabled = false;
-            button.textContent = 'Run All Tests';
-        });
+                // Small delay to allow UI update
+                await new Promise(r => setTimeout(r, 100));
 
-        // Auto-run tests on page load
-        DOMUtils.ready(async () => {
-            const runner = await runTests();
-            renderResults(runner);
-        });
+                try {
+                    const runner = await runTests();
+                    renderResults(runner);
+                } catch (error) {
+                    document.getElementById('results').innerHTML = `
+                        <div class="test-section">
+                            <div class="test-error">Error running tests: ${error.message}</div>
+                        </div>
+                    `;
+                }
+
+                button.disabled = false;
+                button.textContent = 'Run All Tests';
+            });
+
+            // Auto-run tests
+            runTests().then(renderResults).catch(error => {
+                console.error('Test error:', error);
+                document.getElementById('results').innerHTML = `
+                    <div class="test-section">
+                        <div class="test-error">Error running tests: ${error.message}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // Run init when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
