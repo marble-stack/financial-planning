@@ -2016,11 +2016,13 @@
                     if (amountErrors > 0) issues.push(`${amountErrors} rows with zero/invalid amounts`);
 
                     // Debug info to help diagnose parsing issues
+                    const rawAmountIdx = this.findColumnIndex(header, this.columnConfig.amountCol);
                     const debugInfo = [
-                        `Detected columns: date=${dateIdx}, desc=${descIdx}, amount=${amountIdx}, type=${typeIdx ?? 'none'}`,
+                        `Detected columns: date=${dateIdx}, desc=${descIdx}, amount=${amountIdx} (raw=${rawAmountIdx}), type=${typeIdx ?? 'none'}`,
                         `Mode: ${mode}`,
-                        `Header: [${header.map(h => `"${h}"`).join(', ')}]`,
-                        sampleRows.length > 0 ? `Sample amount value: "${sampleRows[0][amountIdx]}"` : 'No sample rows'
+                        `Header (${header.length} cols): [${header.map((h, i) => `${i}:"${h}"`).join(', ')}]`,
+                        sampleRows.length > 0 ? `Sample row[0]: [${sampleRows[0].map((v, i) => `${i}:"${v}"`).join(', ')}]` : 'No sample rows',
+                        sampleRows.length > 0 && amountIdx !== null ? `Sample amount (col ${amountIdx}): "${sampleRows[0][amountIdx]}" → parsed: ${this.parseAmount(sampleRows[0][amountIdx])}` : 'No amount column'
                     ];
 
                     throw new Error(
