@@ -3144,8 +3144,11 @@ Return ONLY a JSON object (no markdown, no explanation):
                     chartContainer.appendChild(row);
                 });
 
-                // Calculate and display savings rate
-                const savingsRate = monthlyActualIncome > 0 ? ((monthlyActualIncome - monthlySpending) / monthlyActualIncome * 100) : 0;
+                // Calculate and display savings rate (short-term + long-term savings)
+                const shortTermSavings = (categories['short-term']?.total || 0) / months;
+                const longTermSavings = (categories['long-term']?.total || 0) / months;
+                const totalMonthlySavings = shortTermSavings + longTermSavings;
+                const savingsRate = monthlyActualIncome > 0 ? (totalMonthlySavings / monthlyActualIncome * 100) : 0;
                 const targetSavingsRate = this.targets.shortTerm + this.targets.longTerm;
 
                 const savingsRow = document.createElement('div');
