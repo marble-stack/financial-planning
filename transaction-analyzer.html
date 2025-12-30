@@ -1624,13 +1624,34 @@
                     if (this.transactions.length > 0) this.updateDisplay();
                 });
 
-                // Filters
-                document.getElementById('categoryFilter').addEventListener('change', () => this.renderTransactions());
-                document.getElementById('sortOrder').addEventListener('change', () => this.renderTransactions());
+                // Filters - reset pagination when filter changes
+                document.getElementById('categoryFilter').addEventListener('change', () => {
+                    this.currentMobilePage = 1;
+                    this.renderTransactions();
+                });
+                document.getElementById('sortOrder').addEventListener('change', () => {
+                    this.currentMobilePage = 1;
+                    this.renderTransactions();
+                });
             }
 
             handleFiles(files) {
                 const fileNames = Array.from(files).map(f => f.name);
+
+                // File size limits
+                const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB hard limit
+                const WARN_FILE_SIZE = 5 * 1024 * 1024; // 5MB warning threshold
+
+                for (const file of files) {
+                    if (file.size > MAX_FILE_SIZE) {
+                        this.showError(`File "${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB).\n\nMaximum file size is 10MB. Please split large files into smaller chunks.`);
+                        return;
+                    }
+                    if (file.size > WARN_FILE_SIZE) {
+                        console.warn(`Large file detected: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB). Processing may be slow.`);
+                    }
+                }
+
                 const promises = Array.from(files).map(file => this.parseCSV(file));
 
                 Promise.all(promises).then(results => {
@@ -1710,8 +1731,8 @@
                     box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
                 `;
 
-                // Format the error message (preserve newlines and structure)
-                const formattedMessage = errorMessage
+                // Format the error message (escape HTML first, then preserve newlines and structure)
+                const formattedMessage = this.escapeHtml(errorMessage)
                     .replace(/\n\n/g, '<br><br>')
                     .replace(/\n•/g, '<br>•');
 
@@ -2570,7 +2591,7 @@
                         </td>
                         <td>
                             ${t.isTransfer ? transferOverride : `
-                            <select class="category-select" data-id="${t.id}" onchange="analyzer.updateCategory(this)">
+                            <select class="category-select" data-id="${this.escapeHtml(t.id)}" onchange="analyzer.updateCategory(this)">
                                 ${categoryOptions}
                             </select>
                             `}
@@ -2593,7 +2614,7 @@
                                 <span class="transaction-card-date">${new Date(t.date).toLocaleDateString()}</span>
                                 <div class="transaction-card-category">
                                     ${t.isTransfer ? transferOverride : `
-                                    <select data-id="${t.id}" onchange="analyzer.updateCategory(this)">
+                                    <select data-id="${this.escapeHtml(t.id)}" onchange="analyzer.updateCategory(this)">
                                         ${categoryOptions}
                                     </select>
                                     `}
