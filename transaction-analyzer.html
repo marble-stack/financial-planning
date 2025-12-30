@@ -1636,6 +1636,11 @@
             }
 
             handleFiles(files) {
+                // Early return if no files provided
+                if (!files || files.length === 0) {
+                    return;
+                }
+
                 const fileNames = Array.from(files).map(f => f.name);
 
                 // File size limits
