@@ -445,51 +445,149 @@
             font-size: 0.9em;
         }
 
+        /* Income Comparison Header */
+        .income-comparison-header {
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .income-comparison {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 0.95em;
+        }
+
+        .income-label {
+            color: #64748b;
+        }
+
+        .income-value {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .income-separator {
+            color: #cbd5e1;
+            margin: 0 4px;
+        }
+
+        .income-diff {
+            font-weight: 600;
+            font-size: 0.9em;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .income-diff.positive {
+            color: #059669;
+            background: #d1fae5;
+        }
+
+        .income-diff.negative {
+            color: #dc2626;
+            background: #fee2e2;
+        }
+
+        .income-note {
+            text-align: center;
+            font-size: 0.85em;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        /* Savings Rate */
+        .savings-rate-row {
+            margin-top: 24px;
+            padding: 16px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            border-radius: 8px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .savings-rate {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 1.1em;
+        }
+
+        .savings-label {
+            color: #166534;
+            font-weight: 500;
+        }
+
+        .savings-value {
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+
+        .savings-value.positive {
+            color: #059669;
+        }
+
+        .savings-value.negative {
+            color: #dc2626;
+        }
+
+        .savings-target {
+            color: #64748b;
+            font-size: 0.9em;
+        }
+
         /* Action Buttons */
         .action-buttons {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             justify-content: center;
-            margin-top: 30px;
+            margin-top: 32px;
             flex-wrap: wrap;
         }
 
         .btn {
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 1em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 0.95em;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s ease;
             border: none;
+            text-decoration: none;
+            min-width: 160px;
         }
 
         .btn-primary {
             background: #667eea;
             color: white;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
         }
 
         .btn-primary:hover {
             background: #5568d3;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
         }
 
         .btn-secondary {
             background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .btn-secondary:hover {
-            background: #f0f4ff;
-        }
-
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #059669;
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #334155;
         }
 
         /* Empty State */
@@ -1110,11 +1208,26 @@
             /* Action buttons mobile */
             .action-buttons {
                 flex-direction: column;
+                gap: 10px;
             }
 
             .action-buttons .btn {
                 width: 100%;
-                text-align: center;
+                min-width: unset;
+            }
+
+            /* Income comparison mobile */
+            .income-comparison {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .income-separator {
+                display: none;
+            }
+
+            .savings-rate {
+                flex-wrap: wrap;
             }
 
             /* Guidance grid mobile */
@@ -1449,8 +1562,7 @@
                 <!-- Actions -->
                 <div class="action-buttons">
                     <button class="btn btn-secondary" onclick="analyzer.exportSummary()">Export Summary</button>
-                    <button class="btn btn-primary" onclick="analyzer.saveRules()">Save Categorization Rules</button>
-                    <a href="income-allocation.html" class="btn btn-success">Adjust Your Allocation Plan</a>
+                    <a href="income-allocation.html" class="btn btn-primary">Update Budget Plan</a>
                 </div>
             </div>
         </main>
@@ -2959,8 +3071,21 @@ Return ONLY a JSON object (no markdown, no explanation):
                 const maxDate = new Date(Math.max(...dates));
                 const months = Math.max(1, (maxDate - minDate) / (1000 * 60 * 60 * 24 * 30));
 
-                const monthlyIncome = this.targets.income;
-                const maxValue = monthlyIncome;
+                // Calculate actual income from transactions
+                const nonTransferTransactions = this.transactions.filter(t => !t.isTransfer);
+                const totalActualIncome = nonTransferTransactions
+                    .filter(t => t.amount > 0)
+                    .reduce((sum, t) => sum + t.amount, 0);
+                const monthlyActualIncome = totalActualIncome / months;
+
+                // Calculate total spending
+                const totalSpending = nonTransferTransactions
+                    .filter(t => t.amount < 0)
+                    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                const monthlySpending = totalSpending / months;
+
+                const plannedIncome = this.targets.income;
+                const maxValue = Math.max(plannedIncome, monthlyActualIncome);
 
                 const chartContainer = document.getElementById('comparisonChart');
                 chartContainer.innerHTML = '';
@@ -2972,11 +3097,33 @@ Return ONLY a JSON object (no markdown, no explanation):
                     { key: 'guilt-free', name: 'Guilt-Free', targetKey: 'guiltFree' }
                 ];
 
+                // Add income comparison header
+                const incomeHeader = document.createElement('div');
+                incomeHeader.className = 'income-comparison-header';
+                const incomeDiff = monthlyActualIncome - plannedIncome;
+                const incomeDiffPct = plannedIncome > 0 ? ((incomeDiff / plannedIncome) * 100).toFixed(0) : 0;
+                const incomeMatch = Math.abs(incomeDiff) < plannedIncome * 0.05; // Within 5%
+                incomeHeader.innerHTML = `
+                    <div class="income-comparison">
+                        <span class="income-label">Planned Income:</span>
+                        <span class="income-value">${this.formatCurrency(plannedIncome)}/mo</span>
+                        <span class="income-separator">|</span>
+                        <span class="income-label">Actual Income:</span>
+                        <span class="income-value">${this.formatCurrency(monthlyActualIncome)}/mo</span>
+                        ${!incomeMatch ? `<span class="income-diff ${incomeDiff > 0 ? 'positive' : 'negative'}">(${incomeDiff > 0 ? '+' : ''}${incomeDiffPct}%)</span>` : ''}
+                    </div>
+                    ${!incomeMatch ? `<div class="income-note">Actual percentages below use your actual income for accuracy.</div>` : ''}
+                `;
+                chartContainer.appendChild(incomeHeader);
+
                 categoryConfig.forEach(cat => {
                     const data = categories[cat.key] || { total: 0 };
                     const monthlyActual = data.total / months;
                     const targetPct = this.targets[cat.targetKey];
-                    const targetAmount = monthlyIncome * (targetPct / 100);
+                    const targetAmount = plannedIncome * (targetPct / 100);
+
+                    // Use actual income for actual percentage calculation
+                    const actualPct = monthlyActualIncome > 0 ? (monthlyActual / monthlyActualIncome * 100) : 0;
 
                     const targetWidth = Math.min(100, (targetAmount / maxValue) * 100);
                     const actualWidth = Math.min(100, (monthlyActual / maxValue) * 100);
@@ -2991,11 +3138,26 @@ Return ONLY a JSON object (no markdown, no explanation):
                         </div>
                         <div class="comparison-value">
                             <div style="font-size: 0.8em; color: #999;">Target: ${targetPct}%</div>
-                            <div>Actual: ${(monthlyActual / monthlyIncome * 100).toFixed(1)}%</div>
+                            <div>Actual: ${actualPct.toFixed(1)}%</div>
                         </div>
                     `;
                     chartContainer.appendChild(row);
                 });
+
+                // Calculate and display savings rate
+                const savingsRate = monthlyActualIncome > 0 ? ((monthlyActualIncome - monthlySpending) / monthlyActualIncome * 100) : 0;
+                const targetSavingsRate = this.targets.shortTerm + this.targets.longTerm;
+
+                const savingsRow = document.createElement('div');
+                savingsRow.className = 'savings-rate-row';
+                savingsRow.innerHTML = `
+                    <div class="savings-rate">
+                        <span class="savings-label">Savings Rate:</span>
+                        <span class="savings-value ${savingsRate >= targetSavingsRate ? 'positive' : 'negative'}">${savingsRate.toFixed(1)}%</span>
+                        <span class="savings-target">(Target: ${targetSavingsRate}%)</span>
+                    </div>
+                `;
+                chartContainer.appendChild(savingsRow);
 
                 // Add legend
                 const legend = document.createElement('div');
@@ -3249,11 +3411,6 @@ Return ONLY a JSON object (no markdown, no explanation):
                         this.categoryPatterns[category].unshift(regex);
                     }
                 }
-            }
-
-            saveRules() {
-                const rules = StorageUtils.get('transactionRules', {});
-                DOMUtils.downloadFile(JSON.stringify(rules, null, 2), 'transaction-rules.json', 'application/json');
             }
 
             exportSummary() {
