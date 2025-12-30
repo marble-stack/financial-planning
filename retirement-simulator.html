@@ -2289,7 +2289,8 @@
 
             formatCurrencyInput(value) {
                 // Format as currency with commas and 2 decimal places for input fields
-                return '$' + value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                if (value === undefined || value === null || isNaN(value)) return '$0.00';
+                return '$' + Number(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             }
 
             updateHistogram(histogramData) {
@@ -2688,17 +2689,46 @@
                     let forecastUpdated = false;
 
                     if (savedForecast) {
-                        // Restore all input fields with event dispatch
+                        // Restore basic input fields
                         forecastUpdated = setInputValue('currentAge', savedForecast.currentAge) || forecastUpdated;
                         forecastUpdated = setInputValue('retirementAge', savedForecast.retirementAge) || forecastUpdated;
-                        forecastUpdated = setInputValue('currentSavings', savedForecast.currentSavings, ui.formatCurrencyInput.bind(ui)) || forecastUpdated;
-                        forecastUpdated = setInputValue('annualContribution', savedForecast.annualContribution, ui.formatCurrencyInput.bind(ui)) || forecastUpdated;
                         forecastUpdated = setInputValue('expectedReturn', savedForecast.expectedReturn) || forecastUpdated;
                         forecastUpdated = setInputValue('returnVolatility', savedForecast.returnVolatility) || forecastUpdated;
                         forecastUpdated = setInputValue('inflationRate', savedForecast.inflationRate) || forecastUpdated;
                         forecastUpdated = setInputValue('annualSpending', savedForecast.annualSpending, ui.formatCurrencyInput.bind(ui)) || forecastUpdated;
                         forecastUpdated = setInputValue('yearsInRetirement', savedForecast.yearsInRetirement) || forecastUpdated;
                         forecastUpdated = setInputValue('numSimulations', savedForecast.numSimulations) || forecastUpdated;
+
+                        // Handle mode switching and account restoration
+                        if (savedForecast.advancedMode && savedForecast.accounts) {
+                            // Switch to advanced mode
+                            document.getElementById('advancedModeBtn').click();
+                            ui.advancedMode = true;
+
+                            // Restore account balances
+                            setInputValue('traditional401k', savedForecast.accounts.traditional401k, ui.formatCurrencyInput.bind(ui));
+                            setInputValue('roth401k', savedForecast.accounts.roth401k, ui.formatCurrencyInput.bind(ui));
+                            setInputValue('traditionalIRA', savedForecast.accounts.traditionalIRA, ui.formatCurrencyInput.bind(ui));
+                            setInputValue('rothIRA', savedForecast.accounts.rothIRA, ui.formatCurrencyInput.bind(ui));
+                            setInputValue('taxableBrokerage', savedForecast.accounts.taxable, ui.formatCurrencyInput.bind(ui));
+
+                            // Restore contributions
+                            if (savedForecast.contributions) {
+                                setInputValue('contribTraditional401k', savedForecast.contributions.traditional401k, ui.formatCurrencyInput.bind(ui));
+                                setInputValue('contribRoth401k', savedForecast.contributions.roth401k, ui.formatCurrencyInput.bind(ui));
+                                setInputValue('contribTraditionalIRA', savedForecast.contributions.traditionalIRA, ui.formatCurrencyInput.bind(ui));
+                                setInputValue('contribRothIRA', savedForecast.contributions.rothIRA, ui.formatCurrencyInput.bind(ui));
+                                setInputValue('contribTaxable', savedForecast.contributions.taxable, ui.formatCurrencyInput.bind(ui));
+                            }
+
+                            // Update totals display
+                            ui.updateAccountTotals();
+                            forecastUpdated = true;
+                        } else {
+                            // Simple mode
+                            forecastUpdated = setInputValue('currentSavings', savedForecast.currentSavings, ui.formatCurrencyInput.bind(ui)) || forecastUpdated;
+                            forecastUpdated = setInputValue('annualContribution', savedForecast.annualContribution, ui.formatCurrencyInput.bind(ui)) || forecastUpdated;
+                        }
                     }
 
                     // Load saved life events
