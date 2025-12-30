@@ -302,8 +302,10 @@
 
         function parseAmount(value) {
             if (!value || value.trim() === '') return null;
+            // Normalize Unicode minus signs to ASCII hyphen-minus
+            let normalized = value.replace(/[\u2212\u2013\u2014]/g, '-');
             // Remove currency symbols and commas
-            const cleaned = value.replace(/[$,()]/g, '').trim();
+            const cleaned = normalized.replace(/[$,()]/g, '').trim();
             // Handle parentheses as negative
             const isNegative = value.includes('(') && value.includes(')');
             const num = parseFloat(cleaned);
@@ -467,6 +469,14 @@
 
             runner.test('Handle invalid amount', () => {
                 runner.assertEqual(parseAmount('not a number'), null);
+            });
+
+            runner.test('Parse Unicode minus sign (U+2212)', () => {
+                runner.assertEqual(parseAmount('\u221270.00'), -70.00);
+            });
+
+            runner.test('Parse en dash as minus (U+2013)', () => {
+                runner.assertEqual(parseAmount('\u201350.25'), -50.25);
             });
 
             // ============================================
