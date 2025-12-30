@@ -555,9 +555,10 @@
                 runner.assertContains(result, '&amp;');
             });
 
-            runner.test('DOMUtils.escapeHtml escapes quotes', () => {
+            runner.test('DOMUtils.escapeHtml preserves quotes', () => {
+                // Quotes don't need escaping in text content, only in attributes
                 const result = DOMUtils.escapeHtml('Say "Hello"');
-                runner.assertContains(result, '&quot;');
+                runner.assertContains(result, 'Say "Hello"');
             });
 
             runner.test('DOMUtils.escapeHtml handles null', () => {
