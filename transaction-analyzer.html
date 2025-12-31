@@ -541,6 +541,181 @@
             font-size: 0.9em;
         }
 
+        /* Reconciliation Workflow */
+        .reconciliation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .reconciliation-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .reconciliation-card.warning {
+            border-color: #fbbf24;
+            background: #fffbeb;
+        }
+
+        .reconciliation-card.success {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .recon-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .recon-icon {
+            font-size: 1.5em;
+        }
+
+        .recon-title {
+            font-weight: 600;
+            font-size: 1em;
+            color: #1e293b;
+        }
+
+        .recon-diff {
+            font-size: 0.9em;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        .recon-recommendation {
+            font-size: 0.9em;
+            color: #475569;
+            margin-bottom: 12px;
+        }
+
+        .recon-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .recon-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .recon-btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .recon-btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .recon-btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+
+        .recon-btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        /* Progress Tracking */
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .progress-metric {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .progress-label {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .progress-trend {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .progress-trend.improving {
+            color: #059669;
+        }
+
+        .progress-trend.declining {
+            color: #dc2626;
+        }
+
+        .progress-trend.stable {
+            color: #64748b;
+        }
+
+        .progress-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .progress-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-month {
+            width: 60px;
+            font-size: 0.85em;
+            color: #64748b;
+        }
+
+        .progress-bar-bg {
+            flex: 1;
+            height: 20px;
+            background: #f1f5f9;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .progress-value {
+            width: 80px;
+            text-align: right;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
         /* Action Buttons */
         .action-buttons {
             display: flex;
@@ -1494,6 +1669,19 @@
                         <div class="chart-title">Target Allocation vs Actual Spending (Monthly Average)</div>
                         <div class="comparison-bars" id="comparisonChart"></div>
                     </div>
+                </div>
+
+                <!-- Reconciliation Workflow -->
+                <div class="section" id="reconciliationSection" style="display: none;">
+                    <h2>🔄 Reconcile Your Plan</h2>
+                    <p style="color: #666; margin-bottom: 20px;">Your actual spending differs from your plan. Here's what you can do:</p>
+                    <div id="reconciliationActions" class="reconciliation-grid"></div>
+                </div>
+
+                <!-- Progress Tracking -->
+                <div class="section" id="progressSection" style="display: none;">
+                    <h2>📈 Month-over-Month Progress</h2>
+                    <div id="progressChart" class="progress-container"></div>
                 </div>
 
                 <!-- Category Cards -->
@@ -2718,6 +2906,8 @@ Return ONLY a JSON object (no markdown, no explanation):
                 this.updateStats();
                 this.updateSummaryCards();
                 this.updateComparisonChart();
+                this.updateReconciliation();
+                this.updateProgress();
                 this.updateBulkCategorization();
                 this.updateTransfersTable();
                 this.renderTransactions();
@@ -3198,6 +3388,184 @@ Return ONLY a JSON object (no markdown, no explanation):
                 chartContainer.appendChild(legend);
             }
 
+            updateReconciliation() {
+                const section = document.getElementById('reconciliationSection');
+                const container = document.getElementById('reconciliationActions');
+
+                if (!this.targets || !this.targets.income) {
+                    section.style.display = 'none';
+                    return;
+                }
+
+                const categories = this.calculateCategoryTotals();
+                const dates = this.transactions.map(t => new Date(t.date));
+                const minDate = new Date(Math.min(...dates));
+                const maxDate = new Date(Math.max(...dates));
+                const months = Math.max(1, (maxDate - minDate) / (1000 * 60 * 60 * 24 * 30));
+
+                const nonTransferTransactions = this.transactions.filter(t => !t.isTransfer);
+                const totalActualIncome = nonTransferTransactions
+                    .filter(t => t.amount > 0)
+                    .reduce((sum, t) => sum + t.amount, 0);
+                const monthlyActualIncome = totalActualIncome / months;
+
+                const categoryConfig = [
+                    { key: 'fixed-costs', name: 'Fixed Costs', targetKey: 'fixedCosts', icon: '🏠' },
+                    { key: 'short-term', name: 'Short-Term Savings', targetKey: 'shortTerm', icon: '💰' },
+                    { key: 'long-term', name: 'Long-Term Savings', targetKey: 'longTerm', icon: '🎯' },
+                    { key: 'guilt-free', name: 'Guilt-Free', targetKey: 'guiltFree', icon: '✨' }
+                ];
+
+                const recommendations = [];
+
+                categoryConfig.forEach(cat => {
+                    const data = categories[cat.key] || { total: 0 };
+                    const monthlyActual = data.total / months;
+                    const targetPct = this.targets[cat.targetKey];
+                    const targetAmount = this.targets.income * (targetPct / 100);
+                    const actualPct = monthlyActualIncome > 0 ? (monthlyActual / monthlyActualIncome * 100) : 0;
+                    const diff = monthlyActual - targetAmount;
+                    const diffPct = Math.abs(actualPct - targetPct);
+
+                    // Only show if difference is > 10% or > $100
+                    if (diffPct > 10 || Math.abs(diff) > 100) {
+                        const isOver = diff > 0;
+                        recommendations.push({
+                            category: cat.name,
+                            icon: cat.icon,
+                            diff: diff,
+                            diffPct: diffPct,
+                            isOver: isOver,
+                            targetPct: targetPct,
+                            actualPct: actualPct,
+                            targetKey: cat.targetKey
+                        });
+                    }
+                });
+
+                if (recommendations.length === 0) {
+                    section.style.display = 'none';
+                    return;
+                }
+
+                section.style.display = 'block';
+                container.innerHTML = recommendations.map(rec => `
+                    <div class="reconciliation-card ${rec.isOver ? 'warning' : 'success'}">
+                        <div class="recon-header">
+                            <div class="recon-icon">${rec.icon}</div>
+                            <div class="recon-title">${rec.category}</div>
+                        </div>
+                        <div class="recon-diff">
+                            Target: ${rec.targetPct.toFixed(0)}% • Actual: ${rec.actualPct.toFixed(0)}%
+                            ${rec.isOver ?
+                                `<br><strong style="color: #d97706;">+${this.formatCurrency(Math.abs(rec.diff))}/mo over</strong>` :
+                                `<br><strong style="color: #059669;">${this.formatCurrency(Math.abs(rec.diff))}/mo under</strong>`
+                            }
+                        </div>
+                        <div class="recon-recommendation">
+                            ${rec.isOver ?
+                                `You're spending more than planned here. Consider reducing or updating your budget.` :
+                                `You're spending less than planned. You could reallocate this to other goals.`
+                            }
+                        </div>
+                        <div class="recon-actions">
+                            <button class="recon-btn recon-btn-primary" onclick="window.location.href='income-allocation.html'">
+                                Update Budget
+                            </button>
+                            <button class="recon-btn recon-btn-secondary" onclick="StatusBar.openRefinementModal()">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateProgress() {
+                const section = document.getElementById('progressSection');
+                const container = document.getElementById('progressChart');
+
+                if (this.transactions.length === 0) {
+                    section.style.display = 'none';
+                    return;
+                }
+
+                // Group transactions by month
+                const monthlyData = {};
+                this.transactions.filter(t => !t.isTransfer).forEach(t => {
+                    const date = new Date(t.date);
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    if (!monthlyData[monthKey]) {
+                        monthlyData[monthKey] = { income: 0, spending: 0 };
+                    }
+                    if (t.amount > 0) {
+                        monthlyData[monthKey].income += t.amount;
+                    } else {
+                        monthlyData[monthKey].spending += Math.abs(t.amount);
+                    }
+                });
+
+                const months = Object.keys(monthlyData).sort();
+
+                // Need at least 2 months for trends
+                if (months.length < 2) {
+                    section.style.display = 'none';
+                    return;
+                }
+
+                section.style.display = 'block';
+
+                // Calculate savings rate trend
+                const savingsRates = months.map(m => {
+                    const data = monthlyData[m];
+                    const savings = data.income - data.spending;
+                    return data.income > 0 ? (savings / data.income * 100) : 0;
+                });
+
+                const avgSavingsRate = savingsRates.reduce((a, b) => a + b, 0) / savingsRates.length;
+                const recentRate = savingsRates[savingsRates.length - 1];
+                const trend = recentRate > avgSavingsRate + 5 ? 'improving' :
+                             recentRate < avgSavingsRate - 5 ? 'declining' : 'stable';
+                const trendIcon = trend === 'improving' ? '📈' : trend === 'declining' ? '📉' : '➡️';
+
+                // Show last 6 months only
+                const recentMonths = months.slice(-6);
+                const maxSavingsRate = Math.max(...recentMonths.map(m => {
+                    const data = monthlyData[m];
+                    const savings = data.income - data.spending;
+                    return data.income > 0 ? (savings / data.income * 100) : 0;
+                }));
+
+                container.innerHTML = `
+                    <div class="progress-metric">
+                        <div class="progress-header">
+                            <div class="progress-label">Savings Rate by Month</div>
+                            <div class="progress-trend ${trend}">
+                                ${trendIcon} ${trend === 'improving' ? 'Improving' : trend === 'declining' ? 'Declining' : 'Stable'}
+                            </div>
+                        </div>
+                        <div class="progress-bars">
+                            ${recentMonths.map(m => {
+                                const data = monthlyData[m];
+                                const savings = data.income - data.spending;
+                                const rate = data.income > 0 ? (savings / data.income * 100) : 0;
+                                const width = maxSavingsRate > 0 ? (rate / maxSavingsRate * 100) : 0;
+                                const dateObj = new Date(m + '-01');
+                                const monthLabel = dateObj.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                                return `
+                                    <div class="progress-bar-item">
+                                        <div class="progress-month">${monthLabel}</div>
+                                        <div class="progress-bar-bg">
+                                            <div class="progress-bar-fill" style="width: ${width}%"></div>
+                                        </div>
+                                        <div class="progress-value">${rate.toFixed(0)}%</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
             calculateCategoryTotals() {
                 const totals = {};
 
@@ -3386,6 +3754,8 @@ Return ONLY a JSON object (no markdown, no explanation):
                     this.updateStats();
                     this.updateSummaryCards();
                     this.updateComparisonChart();
+                    this.updateReconciliation();
+                    this.updateProgress();
                 }
             }
 

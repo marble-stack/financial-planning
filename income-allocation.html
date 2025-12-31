@@ -362,6 +362,161 @@
             box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
         }
 
+        /* Scenario Comparison */
+        .scenario-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 2px solid #fbbf24;
+        }
+
+        .scenario-section h2 {
+            margin-bottom: 10px;
+            color: #92400e;
+        }
+
+        .scenario-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .scenario-btn {
+            padding: 10px 18px;
+            background: white;
+            border: 2px solid #f59e0b;
+            color: #d97706;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scenario-btn:hover {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .scenario-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .scenario-card.current {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .scenario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .scenario-name {
+            font-weight: 600;
+            font-size: 1em;
+            color: #1e293b;
+        }
+
+        .scenario-badge {
+            font-size: 0.75em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #10b981;
+            color: white;
+            font-weight: 600;
+        }
+
+        .scenario-allocations {
+            font-size: 0.85em;
+            color: #64748b;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .scenario-retirement {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .scenario-retirement-label {
+            font-size: 0.8em;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .scenario-retirement-value {
+            font-size: 1.1em;
+            font-weight: 700;
+        }
+
+        .scenario-retirement-value.high {
+            color: #059669;
+        }
+
+        .scenario-retirement-value.medium {
+            color: #d97706;
+        }
+
+        .scenario-retirement-value.low {
+            color: #dc2626;
+        }
+
+        .scenario-actions-bottom {
+            display: flex;
+            gap: 8px;
+        }
+
+        .scenario-apply-btn {
+            flex: 1;
+            padding: 8px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .scenario-apply-btn:hover {
+            background: #5568d3;
+        }
+
+        .scenario-delete-btn {
+            padding: 8px 12px;
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scenario-delete-btn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
         /* Retirement Impact Preview */
         .retirement-impact-preview {
             margin-top: 20px;
@@ -735,6 +890,23 @@
                 <span id="aggressive-desc" class="sr-only">Fixed costs 50%, Short-term savings 15%, Long-term savings 30%, Guilt-free spending 5%</span>
                 <button type="button" class="preset-btn" onclick="applyPreset('debt-crusher')" aria-describedby="debt-desc" title="Pay off debt faster">Debt Crusher</button>
                 <span id="debt-desc" class="sr-only">Fixed costs 60%, Short-term savings 20%, Long-term savings 15%, Guilt-free spending 5%</span>
+            </section>
+
+            <!-- Scenario Comparison -->
+            <section class="scenario-section" id="scenarioSection" style="display: none;" aria-labelledby="scenario-heading">
+                <h2 id="scenario-heading">💡 Compare Scenarios</h2>
+                <p style="color: #666; margin-bottom: 15px; font-size: 0.95em;">Test different allocation strategies and see how they impact your retirement goals.</p>
+
+                <div class="scenario-actions">
+                    <button type="button" class="scenario-btn" id="saveScenarioBtn" onclick="allocator.saveScenario()">
+                        💾 Save Current as Scenario
+                    </button>
+                    <button type="button" class="scenario-btn" id="clearScenariosBtn" onclick="allocator.clearScenarios()">
+                        🗑️ Clear All Scenarios
+                    </button>
+                </div>
+
+                <div id="scenarioGrid" class="scenario-grid"></div>
             </section>
 
             <section class="categories-section" aria-labelledby="categories-heading">
@@ -1379,6 +1551,9 @@
 
                 // Update retirement impact preview
                 this.updateRetirementImpact(monthlyIncome);
+
+                // Update scenario comparison
+                this.renderScenarios();
             }
 
             updateRetirementImpact(monthlyIncome) {
@@ -1501,6 +1676,145 @@
                     this.calculate();
                 }
             }
+
+            saveScenario() {
+                const scenarios = StorageUtils.get('budgetScenarios') || [];
+                const monthlyIncome = this.monthlyIncome;
+
+                // Create scenario object
+                const scenario = {
+                    id: Date.now(),
+                    name: `Scenario ${scenarios.length + 1}`,
+                    timestamp: new Date().toISOString(),
+                    income: monthlyIncome,
+                    allocations: {
+                        fixedCosts: this.categories.fixedCosts.value,
+                        shortTerm: this.categories.shortTerm.value,
+                        longTerm: this.categories.longTerm.value,
+                        guiltFree: this.categories.guiltFree.value
+                    }
+                };
+
+                // Calculate retirement impact for this scenario
+                const retirementData = StorageUtils.get('retirementForecastData');
+                if (retirementData && retirementData.currentAge && retirementData.retirementAge) {
+                    const annualContribution = (monthlyIncome * this.categories.longTerm.value / 100) * 12;
+                    const currentSavings = retirementData.currentSavings || 0;
+                    const annualSpending = retirementData.annualRetirementSpending || (monthlyIncome * 0.7 * 12);
+
+                    const estimate = CrossToolState.quickRetirementEstimate(
+                        retirementData.currentAge,
+                        retirementData.retirementAge,
+                        currentSavings,
+                        annualContribution,
+                        annualSpending
+                    );
+                    scenario.retirementSuccessRate = estimate.successRate;
+                }
+
+                scenarios.push(scenario);
+                StorageUtils.set('budgetScenarios', scenarios);
+                this.renderScenarios();
+            }
+
+            applyScenario(scenarioId) {
+                const scenarios = StorageUtils.get('budgetScenarios') || [];
+                const scenario = scenarios.find(s => s.id === scenarioId);
+
+                if (scenario) {
+                    // Apply the allocations
+                    this.categories.fixedCosts.value = scenario.allocations.fixedCosts;
+                    this.categories.fixedCosts.slider.value = scenario.allocations.fixedCosts;
+                    this.categories.shortTerm.value = scenario.allocations.shortTerm;
+                    this.categories.shortTerm.slider.value = scenario.allocations.shortTerm;
+                    this.categories.longTerm.value = scenario.allocations.longTerm;
+                    this.categories.longTerm.slider.value = scenario.allocations.longTerm;
+                    this.categories.guiltFree.value = scenario.allocations.guiltFree;
+                    this.categories.guiltFree.slider.value = scenario.allocations.guiltFree;
+
+                    // Optionally update income if different
+                    if (scenario.income && scenario.income !== this.monthlyIncome) {
+                        document.getElementById('income').value = this.formatCurrencyInput(scenario.income);
+                    }
+
+                    this.calculate();
+                    this.renderScenarios();
+
+                    // Clear preset highlighting
+                    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+                }
+            }
+
+            deleteScenario(scenarioId) {
+                let scenarios = StorageUtils.get('budgetScenarios') || [];
+                scenarios = scenarios.filter(s => s.id !== scenarioId);
+                StorageUtils.set('budgetScenarios', scenarios);
+                this.renderScenarios();
+            }
+
+            clearScenarios() {
+                if (confirm('Are you sure you want to clear all saved scenarios?')) {
+                    StorageUtils.remove('budgetScenarios');
+                    this.renderScenarios();
+                }
+            }
+
+            renderScenarios() {
+                const scenarios = StorageUtils.get('budgetScenarios') || [];
+                const section = document.getElementById('scenarioSection');
+                const grid = document.getElementById('scenarioGrid');
+
+                if (scenarios.length === 0) {
+                    section.style.display = 'none';
+                    return;
+                }
+
+                section.style.display = 'block';
+
+                // Get current allocations to determine if a scenario is currently active
+                const currentAllocations = {
+                    fixedCosts: this.categories.fixedCosts.value,
+                    shortTerm: this.categories.shortTerm.value,
+                    longTerm: this.categories.longTerm.value,
+                    guiltFree: this.categories.guiltFree.value
+                };
+
+                grid.innerHTML = scenarios.map(scenario => {
+                    // Check if this scenario matches current allocations
+                    const isCurrent = Object.keys(currentAllocations).every(key =>
+                        Math.abs(currentAllocations[key] - scenario.allocations[key]) < 0.5
+                    );
+
+                    const successRate = scenario.retirementSuccessRate || null;
+                    const rateClass = successRate >= 90 ? 'high' :
+                                     successRate >= 70 ? 'medium' : 'low';
+
+                    return `
+                        <div class="scenario-card ${isCurrent ? 'current' : ''}">
+                            <div class="scenario-header">
+                                <div class="scenario-name">${DOMUtils.escapeHTML(scenario.name)}</div>
+                                ${isCurrent ? '<span class="scenario-badge">CURRENT</span>' : ''}
+                            </div>
+                            <div class="scenario-allocations">
+                                🏠 Fixed: ${scenario.allocations.fixedCosts.toFixed(0)}%<br>
+                                💰 Short-term: ${scenario.allocations.shortTerm.toFixed(0)}%<br>
+                                🎯 Long-term: ${scenario.allocations.longTerm.toFixed(0)}%<br>
+                                ✨ Guilt-free: ${scenario.allocations.guiltFree.toFixed(0)}%
+                            </div>
+                            ${successRate !== null ? `
+                                <div class="scenario-retirement">
+                                    <div class="scenario-retirement-label">Retirement Success</div>
+                                    <div class="scenario-retirement-value ${rateClass}">${successRate}%</div>
+                                </div>
+                            ` : ''}
+                            <div class="scenario-actions-bottom">
+                                ${!isCurrent ? `<button class="scenario-apply-btn" onclick="allocator.applyScenario(${scenario.id})">Apply</button>` : ''}
+                                <button class="scenario-delete-btn" onclick="allocator.deleteScenario(${scenario.id})">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
 
         // Global function for preset buttons
@@ -1540,6 +1854,9 @@
                 // Recalculate to update display
                 allocator.calculate();
             }
+
+            // Render saved scenarios
+            allocator.renderScenarios();
 
             // Check for URL params from Spending Tracker
             const urlParams = new URLSearchParams(window.location.search);
