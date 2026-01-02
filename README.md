@@ -1,5 +1,7 @@
 # Financial Planning Suite
 
+> ⚠️ **UNDER ACTIVE DEVELOPMENT** - This project is currently in beta and under active development. Features may change, and bugs may exist. Not recommended for critical financial planning decisions yet. Please report issues on GitHub!
+
 A comprehensive set of privacy-focused financial planning tools that run entirely in your browser. No data is sent to any server - everything stays on your device.
 
 ## Tools
