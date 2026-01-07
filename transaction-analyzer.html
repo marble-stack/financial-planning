@@ -7,6 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Transaction Analyzer - See Your Spending Reality</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-6eeJb4gOKqaZxKTaVh4k0VR9RnpBPLmqvxmSRoXHgNQNz3bMNqPYLNq/MDpwzi0B" crossorigin="anonymous"></script>
     <script src="shared.js?v=20251229"></script>
     <style>
         * {
@@ -105,6 +106,89 @@
             margin-bottom: 10px;
             color: #555;
             font-size: 1.1em;
+        }
+
+        /* Spending Breakdown Chart */
+        .spending-chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f5f7fa;
+            border-radius: 8px;
+        }
+
+        .spending-chart-wrapper {
+            position: relative;
+            width: 280px;
+            height: 280px;
+        }
+
+        .spending-chart-legend {
+            flex: 1;
+            min-width: 200px;
+            max-width: 400px;
+        }
+
+        .spending-chart-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .spending-chart-legend-item:last-child {
+            border-bottom: none;
+        }
+
+        .spending-chart-legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .spending-chart-legend-label {
+            flex: 1;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .spending-chart-legend-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .spending-chart-legend-pct {
+            color: #666;
+            font-size: 0.9em;
+            min-width: 45px;
+            text-align: right;
+        }
+
+        .chart-download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: white;
+            border: 1px solid #667eea;
+            color: #667eea;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 15px;
+        }
+
+        .chart-download-btn:hover {
+            background: #667eea;
+            color: white;
         }
 
         /* Upload Section */
@@ -1728,6 +1812,23 @@
                     <div id="progressChart" class="progress-container"></div>
                 </div>
 
+                <!-- Spending Breakdown Chart -->
+                <div id="spendingChartSection" style="display: none;">
+                    <h2 style="margin-bottom: 15px; color: #333; font-size: 1.3em;">📊 Spending Breakdown</h2>
+                    <div class="spending-chart-container">
+                        <div class="spending-chart-wrapper">
+                            <canvas id="spendingPieChart" role="img" aria-label="Pie chart showing spending distribution by category"></canvas>
+                        </div>
+                        <div class="spending-chart-legend" id="spendingChartLegend"></div>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="chart-download-btn" id="downloadSpendingChart" aria-label="Download spending chart as PNG image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download PNG
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Category Cards -->
                 <div class="summary-cards" id="summaryCards"></div>
 
@@ -1839,6 +1940,7 @@
             constructor() {
                 this.transactions = [];
                 this.lastBulkAction = null; // For undo functionality
+                this.spendingPieChart = null; // Chart.js instance for spending breakdown
                 this.targets = {
                     income: 5000,
                     fixedCosts: 50,
@@ -3320,6 +3422,119 @@ Return ONLY a JSON object (no markdown, no explanation):
                     `;
                     cardsContainer.appendChild(card);
                 });
+
+                // Update the pie chart
+                this.updateSpendingChart(categories, totalSpending, months);
+            }
+
+            updateSpendingChart(categories, totalSpending, months) {
+                const chartSection = document.getElementById('spendingChartSection');
+                const ctx = document.getElementById('spendingPieChart');
+                const legendContainer = document.getElementById('spendingChartLegend');
+
+                if (!ctx || totalSpending === 0) {
+                    chartSection.style.display = 'none';
+                    return;
+                }
+
+                chartSection.style.display = 'block';
+
+                // Category configuration with colors
+                const categoryConfig = [
+                    { key: 'fixed-costs', name: 'Fixed Costs', color: '#ef4444' },
+                    { key: 'guilt-free', name: 'Guilt-Free', color: '#8b5cf6' },
+                    { key: 'short-term', name: 'Short-Term Savings', color: '#f59e0b' },
+                    { key: 'long-term', name: 'Long-Term Savings', color: '#10b981' },
+                    { key: 'uncategorized', name: 'Uncategorized', color: '#6b7280' }
+                ];
+
+                // Prepare chart data
+                const chartData = categoryConfig
+                    .map(cat => ({
+                        ...cat,
+                        value: categories[cat.key]?.total || 0,
+                        monthlyAvg: (categories[cat.key]?.total || 0) / months
+                    }))
+                    .filter(cat => cat.value > 0);
+
+                const labels = chartData.map(d => d.name);
+                const data = chartData.map(d => d.value);
+                const colors = chartData.map(d => d.color);
+
+                // Destroy existing chart if present
+                if (this.spendingPieChart) {
+                    this.spendingPieChart.destroy();
+                }
+
+                // Create new chart
+                this.spendingPieChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: false // We'll render our own legend
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => {
+                                        const value = context.parsed;
+                                        const pct = ((value / totalSpending) * 100).toFixed(1);
+                                        return `${context.label}: ${this.formatCurrency(value)} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '60%'
+                    }
+                });
+
+                // Render custom legend
+                legendContainer.innerHTML = chartData.map(cat => {
+                    const pct = ((cat.value / totalSpending) * 100).toFixed(1);
+                    return `
+                        <div class="spending-chart-legend-item">
+                            <div class="spending-chart-legend-color" style="background: ${cat.color};"></div>
+                            <span class="spending-chart-legend-label">${cat.name}</span>
+                            <span class="spending-chart-legend-value">${this.formatCurrency(cat.monthlyAvg)}/mo</span>
+                            <span class="spending-chart-legend-pct">${pct}%</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            downloadSpendingChart() {
+                const canvas = document.getElementById('spendingPieChart');
+                if (!canvas) return;
+
+                // Create a temporary canvas with white background
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                // Fill with white background
+                tempCtx.fillStyle = '#ffffff';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+                // Draw the chart on top
+                tempCtx.drawImage(canvas, 0, 0);
+
+                // Create download link
+                const link = document.createElement('a');
+                link.download = 'spending-breakdown.png';
+                link.href = tempCanvas.toDataURL('image/png');
+                link.click();
             }
 
             updateComparisonChart() {
@@ -4433,6 +4648,11 @@ Respond with ONLY a JSON array in this exact format, no other text:
                 const isOpen = panel.style.display !== 'none';
                 panel.style.display = isOpen ? 'none' : 'block';
                 arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            });
+
+            // Spending chart download button
+            document.getElementById('downloadSpendingChart').addEventListener('click', () => {
+                analyzer.downloadSpendingChart();
             });
 
             // Transaction details section toggle
