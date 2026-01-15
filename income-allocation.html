@@ -7,6 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Income Allocation Calculator - I Will Teach You to Be Rich</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-6eeJb4gOKqaZxKTaVh4k0VR9RnpBPLmqvxmSRoXHgNQNz3bMNqPYLNq/MDpwzi0B" crossorigin="anonymous"></script>
     <script src="shared.js?v=20251229"></script>
     <style>
         * {
@@ -859,6 +860,100 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Allocation Chart */
+        .allocation-chart-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f5f7fa;
+            border-radius: 8px;
+        }
+
+        .allocation-chart-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.2em;
+        }
+
+        .allocation-chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .allocation-chart-wrapper {
+            position: relative;
+            width: 240px;
+            height: 240px;
+        }
+
+        .allocation-chart-legend {
+            flex: 1;
+            min-width: 200px;
+            max-width: 350px;
+        }
+
+        .allocation-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .allocation-legend-item:last-child {
+            border-bottom: none;
+        }
+
+        .allocation-legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .allocation-legend-label {
+            flex: 1;
+            font-weight: 500;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .allocation-legend-value {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.95em;
+        }
+
+        .allocation-legend-pct {
+            color: #666;
+            font-size: 0.9em;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .chart-download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: white;
+            border: 1px solid #667eea;
+            color: #667eea;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 15px;
+        }
+
+        .chart-download-btn:hover {
+            background: #667eea;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -1069,6 +1164,23 @@
                         </div>
                     </div>
                 </article>
+
+                <!-- Allocation Chart -->
+                <div class="allocation-chart-section">
+                    <h3>📊 Your Budget at a Glance</h3>
+                    <div class="allocation-chart-container">
+                        <div class="allocation-chart-wrapper">
+                            <canvas id="allocationChart" role="img" aria-label="Donut chart showing budget allocation percentages"></canvas>
+                        </div>
+                        <div class="allocation-chart-legend" id="allocationChartLegend"></div>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="chart-download-btn" id="downloadAllocationChart" aria-label="Download allocation chart as PNG image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download PNG
+                        </button>
+                    </div>
+                </div>
             </section>
         </main>
 
@@ -1103,6 +1215,7 @@
                 this.taxEstimate = null;
                 this.taxType = 'post-tax';
                 this.editingElement = null;
+                this.allocationChart = null; // Chart.js instance
 
                 this.init();
             }
@@ -1598,6 +1711,102 @@
 
                 // Update scenario comparison
                 this.renderScenarios();
+
+                // Update allocation chart
+                this.updateAllocationChart(monthlyIncome);
+            }
+
+            updateAllocationChart(monthlyIncome) {
+                const ctx = document.getElementById('allocationChart');
+                const legendContainer = document.getElementById('allocationChartLegend');
+                if (!ctx) return;
+
+                // Category configuration with colors (matching the category cards)
+                const categoryConfig = [
+                    { key: 'fixedCosts', name: 'Fixed Costs', color: '#ef4444' },
+                    { key: 'shortTerm', name: 'Short-Term Savings', color: '#f59e0b' },
+                    { key: 'longTerm', name: 'Long-Term Savings', color: '#10b981' },
+                    { key: 'guiltFree', name: 'Guilt-Free', color: '#8b5cf6' }
+                ];
+
+                // Prepare chart data
+                const chartData = categoryConfig.map(cat => ({
+                    ...cat,
+                    value: this.categories[cat.key].value,
+                    amount: (monthlyIncome * this.categories[cat.key].value) / 100
+                }));
+
+                const labels = chartData.map(d => d.name);
+                const data = chartData.map(d => d.value);
+                const colors = chartData.map(d => d.color);
+
+                // Destroy existing chart if present
+                if (this.allocationChart) {
+                    this.allocationChart.destroy();
+                }
+
+                // Create new chart
+                this.allocationChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderColor: '#ffffff',
+                            borderWidth: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => {
+                                        const idx = context.dataIndex;
+                                        const pct = chartData[idx].value;
+                                        const amt = this.formatCurrency(chartData[idx].amount);
+                                        return `${context.label}: ${pct}% (${amt}/mo)`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '55%'
+                    }
+                });
+
+                // Render custom legend
+                legendContainer.innerHTML = chartData.map(cat => `
+                    <div class="allocation-legend-item">
+                        <div class="allocation-legend-color" style="background: ${cat.color};"></div>
+                        <span class="allocation-legend-label">${cat.name}</span>
+                        <span class="allocation-legend-value">${this.formatCurrency(cat.amount)}/mo</span>
+                        <span class="allocation-legend-pct">${cat.value}%</span>
+                    </div>
+                `).join('');
+            }
+
+            downloadAllocationChart() {
+                const canvas = document.getElementById('allocationChart');
+                if (!canvas) return;
+
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                tempCtx.fillStyle = '#ffffff';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                tempCtx.drawImage(canvas, 0, 0);
+
+                const link = document.createElement('a');
+                link.download = 'budget-allocation.png';
+                link.href = tempCanvas.toDataURL('image/png');
+                link.click();
             }
 
             updateRetirementImpact(monthlyIncome) {
@@ -2012,6 +2221,11 @@
             if (typeof StatusBar !== 'undefined') {
                 StatusBar.init();
             }
+
+            // Chart download button
+            document.getElementById('downloadAllocationChart').addEventListener('click', () => {
+                allocator.downloadAllocationChart();
+            });
         });
     </script>
 </body>
