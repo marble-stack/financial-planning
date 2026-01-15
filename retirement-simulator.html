@@ -339,6 +339,38 @@
             height: 450px;
         }
 
+        .chart-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+            gap: 10px;
+        }
+
+        .download-chart-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: white;
+            border: 1px solid #667eea;
+            color: #667eea;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .download-chart-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .download-chart-btn:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
         footer {
             background: #f5f5f5;
             padding: 24px 30px;
@@ -617,6 +649,15 @@
 
             .chart-container h3 {
                 font-size: 1.1em;
+            }
+
+            .chart-actions {
+                justify-content: center;
+            }
+
+            .download-chart-btn {
+                font-size: 0.8em;
+                padding: 8px 12px;
             }
 
             footer {
@@ -1389,6 +1430,12 @@
                     <div class="chart-wrapper">
                         <canvas id="histogramChart" role="img" aria-label="Histogram showing distribution of ending portfolio balances across all simulations"></canvas>
                     </div>
+                    <div class="chart-actions">
+                        <button class="download-chart-btn" id="downloadHistogram" aria-label="Download histogram chart as PNG image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download PNG
+                        </button>
+                    </div>
                     <!-- Accessible data table for screen readers -->
                     <details style="margin-top: 15px;">
                         <summary style="cursor: pointer; color: #667eea; font-size: 0.9em;">View chart data as table (for accessibility)</summary>
@@ -1401,6 +1448,12 @@
                     <div class="chart-wrapper">
                         <canvas id="pathsChart" role="img" aria-label="Line chart showing median portfolio trajectory with confidence intervals from 10th to 90th percentile"></canvas>
                     </div>
+                    <div class="chart-actions">
+                        <button class="download-chart-btn" id="downloadPaths" aria-label="Download projection chart as PNG image">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download PNG
+                        </button>
+                    </div>
                     <!-- Accessible data table for screen readers -->
                     <details style="margin-top: 15px;">
                         <summary style="cursor: pointer; color: #667eea; font-size: 0.9em;">View chart data as table (for accessibility)</summary>
@@ -1412,6 +1465,7 @@
                             <li><strong>Bold blue line (Median):</strong> The most likely path - half of simulations end above this, half below</li>
                             <li><strong>Dark blue band (25th-75th):</strong> The middle 50% of outcomes fall within this range</li>
                             <li><strong>Light blue band (10th-90th):</strong> 80% of all possible outcomes fall within this wider range</li>
+                            <li><strong style="color: #dc3545;">Red dashed line ($0 Threshold):</strong> If bands cross this line, you risk running out of money</li>
                             <li><strong>Width of bands = uncertainty:</strong> Wider bands mean more variability in potential outcomes</li>
                         </ul>
                         <p style="color: #666; font-size: 0.9em; margin-top: 12px; font-style: italic;">
@@ -1955,6 +2009,14 @@
             setupEventListeners() {
                 document.getElementById('runSimulation').addEventListener('click', () => {
                     this.runSimulation();
+                });
+
+                // Chart download buttons
+                document.getElementById('downloadHistogram').addEventListener('click', () => {
+                    this.downloadChart('histogramChart', 'retirement-distribution.png');
+                });
+                document.getElementById('downloadPaths').addEventListener('click', () => {
+                    this.downloadChart('pathsChart', 'retirement-projection.png');
                 });
 
                 // Currency formatting for simple mode inputs
@@ -2591,6 +2653,30 @@
                 return FinanceUtils.formatCurrencyCompact(value);
             }
 
+            downloadChart(canvasId, filename) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+
+                // Create a temporary canvas with white background
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                // Fill with white background
+                tempCtx.fillStyle = '#ffffff';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+                // Draw the chart on top
+                tempCtx.drawImage(canvas, 0, 0);
+
+                // Create download link
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = tempCanvas.toDataURL('image/png');
+                link.click();
+            }
+
             updateHistogram(histogramData) {
                 const ctx = document.getElementById('histogramChart').getContext('2d');
 
@@ -2764,6 +2850,22 @@
                         pointRadius: 0,
                         tension: 0.2,
                         order: 0
+                    },
+                    // $0 threshold line (depletion risk indicator)
+                    {
+                        label: '$0 Threshold',
+                        data: percentile50.length > 0 ? [
+                            { x: percentile50[0].x, y: 0 },
+                            { x: percentile50[percentile50.length - 1].x, y: 0 }
+                        ] : [],
+                        fill: false,
+                        backgroundColor: 'transparent',
+                        borderColor: 'rgba(220, 53, 69, 0.7)',
+                        borderWidth: 2,
+                        borderDash: [8, 4],
+                        pointRadius: 0,
+                        tension: 0,
+                        order: 5
                     }
                 ];
 
@@ -2788,14 +2890,17 @@
                                         weight: '500'
                                     },
                                     filter: function(legendItem, chartData) {
-                                        // Show median and the two range items
+                                        // Show median, range items, and threshold
                                         return legendItem.text.includes('Median') ||
-                                               legendItem.text.includes('Range');
+                                               legendItem.text.includes('Range') ||
+                                               legendItem.text.includes('Threshold');
                                     },
                                     generateLabels: function(chart) {
                                         const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
                                         return original.filter(item => {
-                                            return item.text.includes('Median') || item.text.includes('Range');
+                                            return item.text.includes('Median') ||
+                                                   item.text.includes('Range') ||
+                                                   item.text.includes('Threshold');
                                         });
                                     }
                                 }
@@ -2808,8 +2913,10 @@
                                         return `Age ${Math.round(context[0].parsed.x)}`;
                                     },
                                     label: function(context) {
-                                        if (context.dataset.label.includes('Range')) {
-                                            return null; // Don't show range datasets in tooltip
+                                        // Don't show range datasets or threshold in tooltip
+                                        if (context.dataset.label.includes('Range') ||
+                                            context.dataset.label.includes('Threshold')) {
+                                            return null;
                                         }
                                         return `${context.dataset.label}: ${this.formatCurrency(context.parsed.y)}`;
                                     }.bind(this)
