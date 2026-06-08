@@ -32,7 +32,7 @@ This is a static HTML/JS application. To develop:
 3. Run tests and checks before committing:
 
    ```bash
-   npm test          # Run 474 automated tests
+   npm test          # Run 491 automated tests
    npm run lint      # Check for code issues
    npm run format    # Auto-format all files
    ```
@@ -83,10 +83,11 @@ Core logic is extracted into ES modules for testing:
 | `statistics.js`         | Percentiles, histograms, mean/std dev                       |
 | `validation.js`         | Input validation, cross-field validation, schema validation |
 | `tax-parameters.js`     | 2024 tax brackets, SS params, state taxes, IRS limits       |
+| `ynab-budget.js`        | YNAB budget category → conscious-spending bucket mapping    |
 
 ### Test Suite (`tests/`)
 
-474 automated tests using Vitest. Run with `npm test`. Tests cover all lib/ modules plus shared.js utilities. Key test files:
+491 automated tests using Vitest. Run with `npm test`. Tests cover all lib/ modules plus shared.js utilities. Key test files:
 
 - `simulation.test.js` - Monte Carlo, withdrawals, RMDs, edge cases
 - `social-security.test.js` - FRA, PIA calculations, bend points
@@ -145,6 +146,14 @@ Tools share data via localStorage:
 - Transfer detection: heuristic matching (opposite amounts within 3 days with transfer keywords) plus YNAB `transfer_account_id` flag
 - Categories align with income-allocation: fixed-costs, guilt-free, long-term, short-term, income
 
+### Key Classes (income-allocation.html)
+
+**`BudgetPlanner`**
+
+- Splits after-tax income into four conscious-spending buckets (fixed costs, short-term, long-term, guilt-free) via linked sliders that always total 100%
+- Presets (Balanced / Aggressive Saver / Debt Crusher) and click-to-edit dollar amounts
+- YNAB budget import: read-only connection (personal access token, stored in sessionStorage) pulls the current month's budgeted categories, maps them into the four buckets (`lib/ynab-budget.js`), and sets the allocation percentages to match. Uses the `/budgets/{id}/categories` endpoint; amounts are milliunits (1000 = $1.00)
+
 ## localStorage Keys
 
 | Key                      | Used By                                     | Purpose                                 |
@@ -161,6 +170,7 @@ Tools share data via localStorage:
 
 - Chart.js 4.4.0 (CDN with SRI hash) - Used only in retirement-simulator.html for visualizations
 - AI APIs (optional) - Gemini/OpenAI/Anthropic for transaction categorization in transaction-analyzer
+- YNAB API (optional) - `api.ynab.com` read-only access for transaction import (transaction-analyzer) and budget allocation import (income-allocation)
 
 ## Accessibility
 
