@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.ynab.com; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
     <title>Budget Planner - I Will Teach You to Be Rich</title>
     <script src="shared.js?v=20260204"></script>
@@ -230,6 +230,201 @@
       .preset-btn .preset-desc {
         font-size: 0.75em;
         opacity: 0.8;
+      }
+
+      /* YNAB Import */
+      .ynab-or-divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: #94a3b8;
+        font-weight: 600;
+        font-size: 0.85em;
+        margin: 20px 0;
+        gap: 12px;
+      }
+
+      .ynab-or-divider::before,
+      .ynab-or-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+      }
+
+      .ynab-section {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 18px;
+      }
+
+      .ynab-section h3 {
+        color: #1e293b;
+        font-size: 1em;
+        margin-bottom: 6px;
+      }
+
+      .ynab-section p {
+        color: #475569;
+        font-size: 0.9em;
+        line-height: 1.5;
+      }
+
+      .ynab-privacy {
+        margin-top: 10px;
+        font-size: 0.85em;
+        color: #64748b;
+      }
+
+      .ynab-privacy summary {
+        cursor: pointer;
+        font-weight: 500;
+        color: #667eea;
+      }
+
+      .ynab-privacy p {
+        font-size: 0.85em;
+        color: #64748b;
+        margin-top: 8px;
+      }
+
+      .ynab-token-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+        flex-wrap: wrap;
+      }
+
+      .ynab-token-input {
+        flex: 1;
+        min-width: 180px;
+        padding: 10px 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.95em;
+      }
+
+      .ynab-token-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+      }
+
+      .ynab-btn {
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        font-size: 0.9em;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .ynab-btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .ynab-btn-primary:hover:not(:disabled) {
+        background: #5568d3;
+      }
+
+      .ynab-btn-secondary {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+      }
+
+      .ynab-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .ynab-budget-row {
+        margin-top: 14px;
+      }
+
+      .ynab-budget-row label.ynab-field-label {
+        font-weight: 600;
+        display: block;
+        margin-bottom: 6px;
+        color: #334155;
+        font-size: 0.9em;
+      }
+
+      .ynab-controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .ynab-budget-select {
+        flex: 1;
+        min-width: 180px;
+        padding: 10px 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.95em;
+        background: white;
+      }
+
+      .ynab-budget-select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .ynab-budget-select:disabled {
+        background: #f1f5f9;
+        color: #94a3b8;
+      }
+
+      .ynab-status {
+        display: none;
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 0.88em;
+        line-height: 1.4;
+      }
+
+      .ynab-status.show {
+        display: block;
+      }
+
+      .ynab-status.processing {
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+      }
+
+      .ynab-status.success {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+      }
+
+      .ynab-status.error {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+      }
+
+      .ynab-help {
+        margin-top: 12px;
+        font-size: 0.85em;
+        color: #64748b;
+      }
+
+      .ynab-help a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .ynab-help a:hover {
+        text-decoration: underline;
       }
 
       /* Categories section - compact */
@@ -693,6 +888,78 @@
               <span class="preset-desc">60/20/15/5 - Pay off fast</span>
             </button>
           </div>
+
+          <div class="ynab-or-divider">OR IMPORT YOUR REAL BUDGET</div>
+
+          <!-- YNAB Budget Import -->
+          <div class="ynab-section" id="ynabSection">
+            <h3>Import allocations from YNAB (You Need A Budget)</h3>
+            <p>
+              Connect to your YNAB account to pull this month's budgeted categories. We sort them
+              into your four buckets &mdash; fixed costs, short-term savings, long-term savings, and
+              guilt-free spending &mdash; and set your allocation percentages to match how you
+              actually budget.
+            </p>
+
+            <details class="ynab-privacy">
+              <summary>Security &amp; privacy details</summary>
+              <p>
+                <strong>Encryption:</strong> All requests use HTTPS/TLS, so your data is encrypted
+                in transit between your browser and YNAB's servers. No data passes through any
+                intermediary server.<br />
+                <strong>Token storage:</strong> Your personal access token is stored in
+                sessionStorage and automatically cleared when you close the browser tab. It is never
+                written to disk or sent anywhere except to api.ynab.com.<br />
+                <strong>Data accessed:</strong> Budget names, category groups, category names, and
+                budgeted amounts. This is read-only access &mdash; nothing in your YNAB budget is
+                modified.<br />
+                <strong>No third parties:</strong> This is a client-side application. Your token and
+                financial data never leave your browser except for direct HTTPS calls to YNAB's
+                official API.
+              </p>
+            </details>
+
+            <div class="ynab-token-row">
+              <input
+                type="password"
+                id="ynabToken"
+                placeholder="Paste your YNAB personal access token..."
+                class="ynab-token-input"
+                autocomplete="off"
+              />
+              <button type="button" class="ynab-btn ynab-btn-secondary" id="ynabToggleBtn">
+                Show
+              </button>
+              <button type="button" class="ynab-btn ynab-btn-primary" id="ynabConnectBtn" disabled>
+                Connect
+              </button>
+            </div>
+
+            <div class="ynab-budget-row" id="ynabBudgetRow" style="display: none">
+              <label for="ynabBudgetSelect" class="ynab-field-label">Select Budget:</label>
+              <div class="ynab-controls">
+                <select id="ynabBudgetSelect" class="ynab-budget-select" disabled>
+                  <option value="">-- Connect to load budgets --</option>
+                </select>
+                <button type="button" class="ynab-btn ynab-btn-primary" id="ynabFetchBtn" disabled>
+                  Import Budget
+                </button>
+              </div>
+            </div>
+
+            <div id="ynabStatus" class="ynab-status" role="status" aria-live="polite"></div>
+
+            <div class="ynab-help">
+              <strong>Get your token:</strong>
+              <a
+                href="https://app.ynab.com/settings/developer"
+                target="_blank"
+                rel="noopener noreferrer"
+                >YNAB Developer Settings</a
+              >
+              &rarr; Personal Access Tokens &rarr; New Token
+            </div>
+          </div>
         </section>
 
         <!-- Step 3: Adjust Allocations -->
@@ -883,6 +1150,9 @@
             this.applyPreset({ fixedCosts: 60, shortTerm: 20, longTerm: 15, guiltFree: 5 });
             this.highlightPreset('preset-debt');
           });
+
+          // YNAB import wiring
+          this.setupYnabImport();
 
           // Load saved data or use defaults
           this.loadSavedData();
@@ -1269,6 +1539,261 @@
             return FinanceUtils.formatCurrency(value);
           }
           return '$' + Math.round(value).toLocaleString();
+        }
+
+        // ---- YNAB budget import ----
+        // The category-mapping logic below mirrors lib/ynab-budget.js (kept in
+        // sync for the test suite). Keep both copies aligned when editing.
+
+        setupYnabImport() {
+          this.ynabToken = document.getElementById('ynabToken');
+          this.ynabToggleBtn = document.getElementById('ynabToggleBtn');
+          this.ynabConnectBtn = document.getElementById('ynabConnectBtn');
+          this.ynabBudgetRow = document.getElementById('ynabBudgetRow');
+          this.ynabBudgetSelect = document.getElementById('ynabBudgetSelect');
+          this.ynabFetchBtn = document.getElementById('ynabFetchBtn');
+          this.ynabStatusEl = document.getElementById('ynabStatus');
+
+          // Nothing to wire if the section is absent
+          if (!this.ynabToken) return;
+
+          // Restore a token from a prior connection this session
+          const savedToken = sessionStorage.getItem('ynabToken');
+          if (savedToken) this.ynabToken.value = savedToken;
+          this.ynabConnectBtn.disabled = !this.ynabToken.value.trim();
+
+          this.ynabToken.addEventListener('input', () => {
+            this.ynabConnectBtn.disabled = !this.ynabToken.value.trim();
+          });
+          this.ynabToggleBtn.addEventListener('click', () => this.toggleYnabTokenVisibility());
+          this.ynabConnectBtn.addEventListener('click', () => this.connectToYnab());
+          this.ynabFetchBtn.addEventListener('click', () => this.fetchYnabBudget());
+        }
+
+        toggleYnabTokenVisibility() {
+          if (this.ynabToken.type === 'password') {
+            this.ynabToken.type = 'text';
+            this.ynabToggleBtn.textContent = 'Hide';
+          } else {
+            this.ynabToken.type = 'password';
+            this.ynabToggleBtn.textContent = 'Show';
+          }
+        }
+
+        setYnabStatus(message, type) {
+          this.ynabStatusEl.innerHTML = message;
+          this.ynabStatusEl.className = 'ynab-status show ' + type;
+        }
+
+        async ynabFetch(endpoint) {
+          const token = this.ynabToken.value.trim();
+          if (!token) throw new Error('YNAB token is required');
+
+          const response = await fetch(`https://api.ynab.com/v1${endpoint}`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            if (response.status === 401) {
+              throw new Error(
+                'Invalid or expired token. Please generate a new one in YNAB Developer Settings.'
+              );
+            }
+            if (response.status === 429) {
+              throw new Error('Rate limited by YNAB. Please wait a moment and try again.');
+            }
+            const errorBody = await response.json().catch(() => ({}));
+            throw new Error(errorBody?.error?.detail || `YNAB API error (${response.status})`);
+          }
+
+          return (await response.json()).data;
+        }
+
+        async connectToYnab() {
+          const token = this.ynabToken.value.trim();
+          if (!token) return;
+
+          this.ynabConnectBtn.disabled = true;
+          this.ynabConnectBtn.textContent = 'Connecting...';
+          this.setYnabStatus('Connecting to YNAB...', 'processing');
+
+          try {
+            const data = await this.ynabFetch('/budgets');
+            const budgets = data.budgets;
+
+            if (!budgets || budgets.length === 0) {
+              this.setYnabStatus('No budgets found in your YNAB account.', 'error');
+              this.ynabConnectBtn.textContent = 'Connect';
+              return;
+            }
+
+            // Store token in sessionStorage (cleared on tab close, never on disk)
+            sessionStorage.setItem('ynabToken', token);
+
+            this.ynabBudgetSelect.innerHTML = '';
+            for (const budget of budgets) {
+              const opt = document.createElement('option');
+              opt.value = budget.id;
+              opt.textContent = budget.name;
+              this.ynabBudgetSelect.appendChild(opt);
+            }
+            this.ynabBudgetSelect.disabled = false;
+            this.ynabBudgetRow.style.display = 'block';
+            this.ynabFetchBtn.disabled = false;
+
+            this.setYnabStatus(
+              `Connected! Found ${budgets.length} budget${budgets.length !== 1 ? 's' : ''}. Select one and click "Import Budget".`,
+              'success'
+            );
+            this.ynabConnectBtn.textContent = 'Reconnect';
+          } catch (err) {
+            this.setYnabStatus(this.escapeHtml(err.message), 'error');
+            this.ynabConnectBtn.textContent = 'Connect';
+          } finally {
+            this.ynabConnectBtn.disabled = false;
+          }
+        }
+
+        async fetchYnabBudget() {
+          const budgetId = this.ynabBudgetSelect.value;
+          if (!budgetId) {
+            this.setYnabStatus('Please select a budget.', 'error');
+            return;
+          }
+
+          this.ynabFetchBtn.disabled = true;
+          this.ynabFetchBtn.textContent = 'Importing...';
+          this.setYnabStatus('Fetching your budget categories from YNAB...', 'processing');
+
+          try {
+            const data = await this.ynabFetch(
+              `/budgets/${encodeURIComponent(budgetId)}/categories`
+            );
+            const summary = this.summarizeYnabBudget(data.category_groups);
+
+            if (summary.totalMonthly <= 0) {
+              this.setYnabStatus(
+                'No budgeted amounts found for this month. Assign money to your categories in YNAB, then try again.',
+                'error'
+              );
+              return;
+            }
+
+            this.applyYnabSummary(summary);
+            this.setYnabStatus(this.formatYnabSummary(summary), 'success');
+            this.ynabFetchBtn.textContent = 'Re-import Budget';
+          } catch (err) {
+            this.setYnabStatus(this.escapeHtml(err.message), 'error');
+            this.ynabFetchBtn.textContent = 'Import Budget';
+          } finally {
+            this.ynabFetchBtn.disabled = false;
+          }
+        }
+
+        applyYnabSummary(summary) {
+          // Clear preset highlight and set each bucket to the imported percentage
+          document.querySelectorAll('.preset-btn').forEach((btn) => btn.classList.remove('active'));
+          for (const key of this.categoryOrder) {
+            this.categories[key].locked = false;
+            this.categories[key].value = summary.percentages[key];
+          }
+          this.calculate();
+        }
+
+        formatYnabSummary(summary) {
+          const p = summary.percentages;
+          const total = this.formatCurrency(summary.totalMonthly);
+          return (
+            `Imported ${summary.categoryCount} budgeted ` +
+            `categor${summary.categoryCount !== 1 ? 'ies' : 'y'} ` +
+            `(${this.escapeHtml(total)}/mo).<br />` +
+            `Fixed Costs ${p.fixedCosts}% &middot; Short-Term ${p.shortTerm}% &middot; ` +
+            `Long-Term ${p.longTerm}% &middot; Guilt-Free ${p.guiltFree}%. ` +
+            `Your sliders below now match your YNAB budget.`
+          );
+        }
+
+        escapeHtml(text) {
+          if (typeof DOMUtils !== 'undefined' && DOMUtils.escapeHtml) {
+            return DOMUtils.escapeHtml(text);
+          }
+          const div = document.createElement('div');
+          div.textContent = String(text);
+          return div.innerHTML;
+        }
+
+        mapYnabCategoryToBucket(categoryName, groupName = '') {
+          const text = `${categoryName || ''} ${groupName || ''}`.toLowerCase().trim();
+          if (!text) return 'guiltFree';
+          if (/income|inflow|ready to assign|to be budgeted|paycheck/i.test(text)) return null;
+          if (/invest|retire|401k|403b|\bira\b|roth|brokerage|pension|\bhsa\b/i.test(text)) {
+            return 'longTerm';
+          }
+          if (
+            /saving|emergency|vacation|sinking|rainy.?day|travel fund|gift fund|holiday fund/i.test(
+              text
+            )
+          ) {
+            return 'shortTerm';
+          }
+          if (
+            /rent|mortgage|utilit|electric|gas bill|water|internet|phone|cell|insurance|grocer|car payment|auto loan|loan|debt|minimum|childcare|daycare|tuition|medical|pharmacy|doctor|subscription|hoa|property tax/i.test(
+              text
+            )
+          ) {
+            return 'fixedCosts';
+          }
+          return 'guiltFree';
+        }
+
+        ynabToPercentages(buckets, total) {
+          if (!total || total <= 0) {
+            return { fixedCosts: 0, shortTerm: 0, longTerm: 0, guiltFree: 0 };
+          }
+          const entries = this.categoryOrder.map((key) => {
+            const exact = (buckets[key] / total) * 100;
+            const floor = Math.floor(exact);
+            return { key, floor, frac: exact - floor };
+          });
+          const result = {};
+          for (const entry of entries) result[entry.key] = entry.floor;
+          const remainder = 100 - entries.reduce((sum, entry) => sum + entry.floor, 0);
+          const byFrac = [...entries].sort((a, b) => b.frac - a.frac);
+          for (let i = 0; i < remainder && i < byFrac.length; i++) {
+            result[byFrac[i].key] += 1;
+          }
+          return result;
+        }
+
+        summarizeYnabBudget(categoryGroups) {
+          const buckets = { fixedCosts: 0, shortTerm: 0, longTerm: 0, guiltFree: 0 };
+          const breakdown = [];
+          const excludedGroups = /internal master category|credit card payments/i;
+
+          for (const group of categoryGroups || []) {
+            if (!group || group.deleted || group.hidden) continue;
+            if (excludedGroups.test(group.name || '')) continue;
+
+            for (const cat of group.categories || []) {
+              if (!cat || cat.deleted || cat.hidden) continue;
+              const dollars = (cat.budgeted || 0) / 1000; // milliunits -> dollars
+              if (dollars <= 0) continue;
+
+              const bucket = this.mapYnabCategoryToBucket(cat.name, group.name);
+              if (!bucket) continue;
+
+              buckets[bucket] += dollars;
+              breakdown.push({ name: cat.name, group: group.name, bucket, dollars });
+            }
+          }
+
+          const totalMonthly = this.categoryOrder.reduce((sum, key) => sum + buckets[key], 0);
+          const percentages = this.ynabToPercentages(buckets, totalMonthly);
+          return { buckets, percentages, totalMonthly, breakdown, categoryCount: breakdown.length };
         }
       }
 
