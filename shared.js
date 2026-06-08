@@ -1131,8 +1131,8 @@ const StatusBar = {
 
             .status-refine-btn {
                 padding: 8px 16px;
-                background: #f59e0b;
-                color: white;
+                background: #fdba74;
+                color: #7c2d12;
                 border: none;
                 border-radius: 6px;
                 font-size: 0.9em;
@@ -1143,7 +1143,7 @@ const StatusBar = {
             }
 
             .status-refine-btn:hover {
-                background: #d97706;
+                background: #fcd34d;
             }
 
             @media (max-width: 768px) {
