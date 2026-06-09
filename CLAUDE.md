@@ -144,6 +144,7 @@ Tools share data via localStorage:
 - YNAB direct import via API (personal access token)
 - Pattern-based auto-categorization before AI fallback
 - Transfer detection: heuristic matching (opposite amounts within 3 days with transfer keywords) plus YNAB `transfer_account_id` flag
+- YNAB tracking-account transfers: transfers from a budget account into a tracking (off-budget, `on_budget: false`) account are treated as savings contributions (long-term for investment/retirement-named accounts, short-term otherwise) rather than excluded as internal transfers; requires fetching `/budgets/{id}/accounts` to look up `on_budget`
 - Categories align with income-allocation: fixed-costs, guilt-free, long-term, short-term, income
 
 ### Key Classes (income-allocation.html)
