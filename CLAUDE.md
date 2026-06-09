@@ -144,7 +144,7 @@ Tools share data via localStorage:
 - YNAB direct import via API (personal access token)
 - Pattern-based auto-categorization before AI fallback
 - Transfer detection: heuristic matching (opposite amounts within 3 days with transfer keywords) plus YNAB `transfer_account_id` flag
-- YNAB tracking-account transfers: transfers from a budget account into a tracking (off-budget, `on_budget: false`) account are treated as savings contributions (long-term for investment/retirement-named accounts, short-term otherwise) rather than excluded as internal transfers; requires fetching `/budgets/{id}/accounts` to look up `on_budget`
+- YNAB tracking-account transfers: transfers from a budget account into a tracking (off-budget, `on_budget: false`) account are treated as savings contributions rather than excluded as internal transfers; requires fetching `/budgets/{id}/accounts` to look up `on_budget`. A mapping UI lets users tag each tracking account as short-term, long-term, or fixed-costs (loan/debt); choices are persisted per-budget in `ynabAccountMappings`. Suggested defaults: liability account types → fixed-costs, investment/retirement-named accounts → long-term, otherwise short-term
 - Categories align with income-allocation: fixed-costs, guilt-free, long-term, short-term, income
 
 ### Key Classes (income-allocation.html)
@@ -163,6 +163,7 @@ Tools share data via localStorage:
 | `spendingTrackerData`    | transaction-analyzer → retirement-simulator | Monthly spending/savings for retirement |
 | `transactionData`        | transaction-analyzer                        | Parsed transactions array               |
 | `transactionRules`       | transaction-analyzer                        | User-defined categorization rules       |
+| `ynabAccountMappings`    | transaction-analyzer                        | Tracking-account → category, per budget |
 | `retirementForecastData` | retirement-simulator                        | Simulation parameters                   |
 | `lifeEventsData`         | retirement-simulator                        | Life events array                       |
 | `lifeEventIdCounter`     | retirement-simulator                        | Counter for unique event IDs            |

@@ -1325,6 +1325,60 @@
         color: #991b1b;
       }
 
+      .ynab-tracking-mapping {
+        margin-top: 14px;
+        padding: 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+      }
+
+      .ynab-tracking-mapping h4 {
+        font-size: 0.95em;
+        color: #334155;
+        margin-bottom: 4px;
+      }
+
+      .ynab-tracking-mapping .ynab-tracking-hint {
+        font-size: 0.85em;
+        color: #64748b;
+        margin-bottom: 12px;
+      }
+
+      .ynab-tracking-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        border-top: 1px solid #e2e8f0;
+      }
+
+      .ynab-tracking-name {
+        font-weight: 500;
+        color: #1e293b;
+        font-size: 0.92em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .ynab-tracking-acct-type {
+        font-weight: 400;
+        color: #94a3b8;
+        font-size: 0.85em;
+      }
+
+      .ynab-tracking-select {
+        flex-shrink: 0;
+        padding: 6px 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 0.88em;
+        background: white;
+        color: #334155;
+      }
+
       .export-help {
         margin-top: 15px;
         background: #fffbf0;
@@ -2173,7 +2227,12 @@
                 Select Budget:
               </label>
               <div class="ynab-controls">
-                <select id="ynabBudgetSelect" class="ynab-budget-select" disabled>
+                <select
+                  id="ynabBudgetSelect"
+                  class="ynab-budget-select"
+                  onchange="analyzer.loadYnabAccounts()"
+                  disabled
+                >
                   <option value="">-- Connect to load budgets --</option>
                 </select>
                 <label style="font-size: 0.9em; color: #475569">
@@ -2190,6 +2249,8 @@
                 </button>
               </div>
             </div>
+
+            <div id="ynabTrackingMapping" class="ynab-tracking-mapping" style="display: none"></div>
 
             <div id="ynabStatus" class="ynab-status"></div>
 
@@ -5044,6 +5105,10 @@ Return ONLY a JSON object (no markdown, no explanation):
               'success'
             );
             connectBtn.textContent = 'Reconnect';
+
+            // Load tracking accounts for the auto-selected budget so the user
+            // can tag them before importing
+            await this.loadYnabAccounts();
           } catch (err) {
             this.setYnabStatus(err.message, 'error');
             connectBtn.textContent = 'Connect';
@@ -5089,18 +5154,154 @@ Return ONLY a JSON object (no markdown, no explanation):
           return !!account && account.on_budget === true;
         }
 
-        // Classify a transfer into a tracking account as long- or short-term
-        // savings based on the destination account's name. Investment and
-        // retirement accounts are long-term; everything else is short-term.
-        classifyYnabTrackingTransfer(accountId) {
-          const account = (this.ynabAccounts && this.ynabAccounts[accountId]) || {};
-          const name = (account.name || '').toLowerCase();
+        // YNAB account types that represent debts/liabilities
+        static YNAB_LIABILITY_TYPES = [
+          'creditCard',
+          'lineOfCredit',
+          'otherLiability',
+          'mortgage',
+          'autoLoan',
+          'studentLoan',
+          'personalLoan',
+          'medicalDebt',
+          'otherDebt',
+        ];
+
+        isYnabLiabilityAccount(account) {
+          return !!account && TransactionAnalyzer.YNAB_LIABILITY_TYPES.includes(account.type);
+        }
+
+        // Suggested default category for a tracking account: debts/loans map to
+        // fixed-costs, investment/retirement accounts to long-term, and the rest
+        // to short-term savings.
+        defaultTrackingCategory(account) {
+          if (this.isYnabLiabilityAccount(account)) return 'fixed-costs';
+          const name = (account?.name || '').toLowerCase();
           if (
             /invest|retire|401k|403b|\bira\b|roth|brokerage|pension|\bhsa\b|529|wealth/i.test(name)
           ) {
             return 'long-term';
           }
           return 'short-term';
+        }
+
+        // Category to apply to a transfer into a tracking account: the user's
+        // saved choice if present, otherwise the suggested default.
+        classifyYnabTrackingTransfer(accountId) {
+          if (this.ynabTrackingCategories && this.ynabTrackingCategories[accountId]) {
+            return this.ynabTrackingCategories[accountId];
+          }
+          const account = (this.ynabAccounts && this.ynabAccounts[accountId]) || {};
+          return this.defaultTrackingCategory(account);
+        }
+
+        // Fetch accounts for the selected budget and render the tracking-account
+        // mapping UI so the user can tag each as short-term, long-term, or
+        // fixed-costs before importing.
+        async loadYnabAccounts() {
+          const budgetId = document.getElementById('ynabBudgetSelect').value;
+          const container = document.getElementById('ynabTrackingMapping');
+          if (!budgetId) {
+            container.style.display = 'none';
+            return;
+          }
+
+          try {
+            const accountsData = await this.ynabFetch(
+              `/budgets/${encodeURIComponent(budgetId)}/accounts`
+            );
+            this.ynabAccounts = {};
+            (accountsData.accounts || []).forEach((a) => {
+              this.ynabAccounts[a.id] = a;
+            });
+            this.ynabAccountsBudgetId = budgetId;
+
+            // Load any previously saved mappings for this budget
+            const allMappings = StorageUtils.get('ynabAccountMappings') || {};
+            const savedForBudget = allMappings[budgetId] || {};
+
+            // Tracking accounts the user can categorize (off-budget, open, not deleted)
+            const trackingAccounts = (accountsData.accounts || []).filter(
+              (a) => a.on_budget === false && !a.deleted && !a.closed
+            );
+
+            // Build the active category map (saved choice or suggested default)
+            this.ynabTrackingCategories = {};
+            for (const account of trackingAccounts) {
+              this.ynabTrackingCategories[account.id] =
+                savedForBudget[account.id] || this.defaultTrackingCategory(account);
+            }
+
+            this.renderYnabTrackingMapping(trackingAccounts);
+          } catch (err) {
+            // Non-fatal: import can still proceed, just without tracking mapping
+            container.style.display = 'none';
+            this.setYnabStatus(`Could not load accounts: ${err.message}`, 'error');
+          }
+        }
+
+        renderYnabTrackingMapping(trackingAccounts) {
+          const container = document.getElementById('ynabTrackingMapping');
+          if (!trackingAccounts || trackingAccounts.length === 0) {
+            container.style.display = 'none';
+            container.innerHTML = '';
+            return;
+          }
+
+          const options = [
+            { value: 'short-term', label: 'Short-term savings' },
+            { value: 'long-term', label: 'Long-term savings' },
+            { value: 'fixed-costs', label: 'Fixed costs (loan/debt)' },
+          ];
+
+          const rows = trackingAccounts
+            .map((account) => {
+              const selected = this.ynabTrackingCategories[account.id];
+              const optionsHtml = options
+                .map(
+                  (o) =>
+                    `<option value="${o.value}"${o.value === selected ? ' selected' : ''}>${o.label}</option>`
+                )
+                .join('');
+              const typeLabel = this.isYnabLiabilityAccount(account) ? ' (debt)' : '';
+              return `
+                <div class="ynab-tracking-row">
+                  <span class="ynab-tracking-name">
+                    ${DOMUtils.escapeHtml(account.name)}<span class="ynab-tracking-acct-type">${typeLabel}</span>
+                  </span>
+                  <select
+                    class="ynab-tracking-select"
+                    aria-label="Category for ${DOMUtils.escapeHtml(account.name)}"
+                    onchange="analyzer.setYnabTrackingCategory('${account.id}', this.value)"
+                  >
+                    ${optionsHtml}
+                  </select>
+                </div>`;
+            })
+            .join('');
+
+          container.innerHTML = `
+            <h4>Tracking accounts</h4>
+            <p class="ynab-tracking-hint">
+              Transfers into these off-budget accounts will be counted as the category you choose
+              instead of being excluded as transfers.
+            </p>
+            ${rows}`;
+          container.style.display = 'block';
+        }
+
+        setYnabTrackingCategory(accountId, category) {
+          if (!this.ynabTrackingCategories) this.ynabTrackingCategories = {};
+          this.ynabTrackingCategories[accountId] = category;
+
+          // Persist per-budget so the choice is remembered on the next import
+          const budgetId = this.ynabAccountsBudgetId;
+          if (budgetId) {
+            const allMappings = StorageUtils.get('ynabAccountMappings') || {};
+            if (!allMappings[budgetId]) allMappings[budgetId] = {};
+            allMappings[budgetId][accountId] = category;
+            StorageUtils.set('ynabAccountMappings', allMappings);
+          }
         }
 
         async fetchYnabTransactions() {
@@ -5138,17 +5339,12 @@ Return ONLY a JSON object (no markdown, no explanation):
               return;
             }
 
-            // Fetch account metadata so we can distinguish tracking (off-budget)
-            // accounts from regular budget accounts. Transfers into tracking
-            // accounts are real savings/investment contributions, not internal
-            // transfers to exclude.
-            const accountsData = await this.ynabFetch(
-              `/budgets/${encodeURIComponent(budgetId)}/accounts`
-            );
-            this.ynabAccounts = {};
-            (accountsData.accounts || []).forEach((a) => {
-              this.ynabAccounts[a.id] = a;
-            });
+            // Ensure account metadata + tracking-account mappings are loaded for
+            // this budget so we can tell tracking (off-budget) accounts apart and
+            // honor the user's category choices.
+            if (this.ynabAccountsBudgetId !== budgetId) {
+              await this.loadYnabAccounts();
+            }
 
             // Convert YNAB transactions to internal format
             // YNAB amounts are in "milliunits" (1000 = $1.00)
