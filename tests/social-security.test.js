@@ -94,8 +94,8 @@ describe('SocialSecurityCalculator', () => {
       const result = calculator.estimatePIA(30000, 35);
       expect(result).toBeGreaterThan(0);
       // AIME = 30000 * 35 / 420 = 2500
-      // PIA = 1174 * 0.90 + (2500 - 1174) * 0.32 = 1056.6 + 424.32 = 1481 (rounded)
-      expect(result).toBe(1481);
+      // PIA = 1286 * 0.90 + (2500 - 1286) * 0.32 = 1157.4 + 388.48 = 1546 (rounded)
+      expect(result).toBe(1546);
     });
 
     it('calculates PIA for middle income', () => {
@@ -110,8 +110,8 @@ describe('SocialSecurityCalculator', () => {
 
     it('caps income at max taxable earnings', () => {
       // Income above max taxable should give same result
-      const maxIncome = calculator.estimatePIA(168600, 35);
-      const aboveMax = calculator.estimatePIA(200000, 35);
+      const maxIncome = calculator.estimatePIA(184500, 35);
+      const aboveMax = calculator.estimatePIA(250000, 35);
       expect(aboveMax).toBe(maxIncome);
     });
 
@@ -134,33 +134,33 @@ describe('SocialSecurityCalculator', () => {
     });
 
     // Exact boundary value tests
-    it('calculates correctly at exactly first bend point AIME ($1,174)', () => {
-      // Need income that gives AIME of exactly $1174 with 35 years
-      // AIME = (income * 35) / 420 = 1174
-      // income = 1174 * 420 / 35 = 14088
-      const income = 1174 * 12; // $14,088 annual = $1,174 monthly AIME
+    it('calculates correctly at exactly first bend point AIME ($1,286)', () => {
+      // Need income that gives AIME of exactly $1286 with 35 years
+      // AIME = (income * 35) / 420 = 1286
+      // income = 1286 * 420 / 35 = 15432
+      const income = 1286 * 12; // $15,432 annual = $1,286 monthly AIME
       const result = calculator.estimatePIA(income, 35);
-      // PIA = 1174 * 0.90 = 1056.6, rounded to 1057
-      expect(result).toBe(1057);
+      // PIA = 1286 * 0.90 = 1157.4, rounded to 1157
+      expect(result).toBe(1157);
     });
 
-    it('calculates correctly at exactly second bend point AIME ($7,078)', () => {
-      // Need income that gives AIME of exactly $7078 with 35 years
-      // AIME = (income * 35) / 420 = 7078
-      // income = 7078 * 12 = 84936
-      const income = 7078 * 12;
+    it('calculates correctly at exactly second bend point AIME ($7,749)', () => {
+      // Need income that gives AIME of exactly $7749 with 35 years
+      // AIME = (income * 35) / 420 = 7749
+      // income = 7749 * 12 = 92988
+      const income = 7749 * 12;
       const result = calculator.estimatePIA(income, 35);
-      // PIA = 1174 * 0.90 + (7078 - 1174) * 0.32 = 1056.6 + 1889.28 = 2946 (rounded)
-      expect(result).toBe(2946);
+      // PIA = 1286 * 0.90 + (7749 - 1286) * 0.32 = 1157.4 + 2068.16 = 3226 (rounded)
+      expect(result).toBe(3226);
     });
 
     it('calculates correctly with income above second bend point', () => {
-      // Max taxable earnings ($168,600) gives AIME = 168600 / 12 = 14050
+      // $168,600 gives AIME = 168600 / 12 = 14050
       const result = calculator.estimatePIA(168600, 35);
       // AIME = 168600 * 35 / 420 = 14050
-      // PIA = 1174 * 0.90 + (7078 - 1174) * 0.32 + (14050 - 7078) * 0.15
-      // PIA = 1056.6 + 1889.28 + 1045.8 = 3991.68, rounded to 3992
-      expect(result).toBe(3992);
+      // PIA = 1286 * 0.90 + (7749 - 1286) * 0.32 + (14050 - 7749) * 0.15
+      // PIA = 1157.4 + 2068.16 + 945.15 = 4170.71, rounded to 4171
+      expect(result).toBe(4171);
     });
 
     it('handles zero years worked', () => {
@@ -179,15 +179,15 @@ describe('SocialSecurityCalculator', () => {
       // With 20 years at $100,000:
       // AIME = (100000 * 20) / 420 = 4762
       const result20 = calculator.estimatePIA(100000, 20);
-      // PIA = 1174 * 0.90 + (4762 - 1174) * 0.32 = 1056.6 + 1148.16 = 2205 (rounded)
-      expect(result20).toBe(2205);
+      // PIA = 1286 * 0.90 + (4762 - 1286) * 0.32 = 1157.4 + 1112.29 = 2270 (rounded)
+      expect(result20).toBe(2270);
 
       // With 35 years at $100,000:
       // AIME = (100000 * 35) / 420 = 8333
       const result35 = calculator.estimatePIA(100000, 35);
-      // PIA = 1174 * 0.90 + (7078 - 1174) * 0.32 + (8333 - 7078) * 0.15
-      // = 1056.6 + 1889.28 + 188.25 = 3134 (rounded)
-      expect(result35).toBe(3134);
+      // PIA = 1286 * 0.90 + (7749 - 1286) * 0.32 + (8333 - 7749) * 0.15
+      // = 1157.4 + 2068.16 + 87.65 = 3313 (rounded)
+      expect(result35).toBe(3313);
 
       // 20 years should be about 57% of 35 years
       expect(result20 / result35).toBeCloseTo(0.7, 1);
@@ -221,9 +221,9 @@ describe('SocialSecurityCalculator', () => {
 
     it('uses defaults when no options provided', () => {
       const defaultCalc = new SocialSecurityCalculator();
-      expect(defaultCalc.bendPoint1).toBe(1174);
-      expect(defaultCalc.bendPoint2).toBe(7078);
-      expect(defaultCalc.maxTaxableEarnings).toBe(168600);
+      expect(defaultCalc.bendPoint1).toBe(1286);
+      expect(defaultCalc.bendPoint2).toBe(7749);
+      expect(defaultCalc.maxTaxableEarnings).toBe(184500);
     });
   });
 });

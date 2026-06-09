@@ -456,13 +456,13 @@ describe('Edge Cases', () => {
 
   describe('calculateTaxRate edge cases', () => {
     it('handles exact bracket boundaries', () => {
-      // Exact boundary at $11,600
-      expect(calculateTaxRate(11600, 0)).toBe(0.1);
-      expect(calculateTaxRate(11601, 0)).toBe(0.12);
+      // Exact boundary at $12,400
+      expect(calculateTaxRate(12400, 0)).toBe(0.1);
+      expect(calculateTaxRate(12401, 0)).toBe(0.12);
 
-      // Exact boundary at $47,150
-      expect(calculateTaxRate(47150, 0)).toBe(0.12);
-      expect(calculateTaxRate(47151, 0)).toBe(0.22);
+      // Exact boundary at $50,400
+      expect(calculateTaxRate(50400, 0)).toBe(0.12);
+      expect(calculateTaxRate(50401, 0)).toBe(0.22);
     });
 
     it('handles zero withdrawal with SS income', () => {

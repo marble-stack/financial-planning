@@ -11,7 +11,7 @@ import {
   calculateStateTax,
   getStateList,
   getContributionLimit,
-  FEDERAL_TAX_BRACKETS_2024,
+  FEDERAL_TAX_BRACKETS_2026,
   RMD_PARAMETERS,
   STATE_TAX_RATES,
   CONTRIBUTION_LIMITS_2024,
@@ -27,19 +27,19 @@ describe('Federal Tax Calculations', () => {
     });
 
     it('calculates tax for income spanning two brackets', () => {
-      // $20,000: First $11,600 at 10%, remaining $8,400 at 12%
+      // $20,000: First $12,400 at 10%, remaining $7,600 at 12%
       const tax = calculateFederalTax(20000);
-      const expected = 11600 * 0.1 + 8400 * 0.12;
+      const expected = 12400 * 0.1 + 7600 * 0.12;
       expect(tax).toBeCloseTo(expected, 2);
     });
 
     it('calculates tax for high income spanning multiple brackets', () => {
       // $100,000 single filer
       const tax = calculateFederalTax(100000);
-      // 10% of $11,600 = $1,160
-      // 12% of ($47,150 - $11,600) = $4,266
-      // 22% of ($100,000 - $47,150) = $11,627
-      const expected = 11600 * 0.1 + (47150 - 11600) * 0.12 + (100000 - 47150) * 0.22;
+      // 10% of $12,400 = $1,240
+      // 12% of ($50,400 - $12,400) = $4,560
+      // 22% of ($100,000 - $50,400) = $10,912
+      const expected = 12400 * 0.1 + (50400 - 12400) * 0.12 + (100000 - 50400) * 0.22;
       expect(tax).toBeCloseTo(expected, 2);
     });
 
@@ -88,8 +88,8 @@ describe('Federal Tax Calculations', () => {
     });
 
     it('handles exact bracket boundary', () => {
-      expect(getMarginalTaxRate(11600)).toBe(0.1); // At boundary, still in lower
-      expect(getMarginalTaxRate(11601)).toBe(0.12); // Just over boundary
+      expect(getMarginalTaxRate(12400)).toBe(0.1); // At boundary, still in lower
+      expect(getMarginalTaxRate(12401)).toBe(0.12); // Just over boundary
     });
   });
 });
@@ -237,22 +237,22 @@ describe('Contribution Limits', () => {
 });
 
 describe('Tax Bracket Data', () => {
-  it('has correct 2024 single brackets', () => {
-    expect(FEDERAL_TAX_BRACKETS_2024[0].max).toBe(11600);
-    expect(FEDERAL_TAX_BRACKETS_2024[1].max).toBe(47150);
-    expect(FEDERAL_TAX_BRACKETS_2024[2].max).toBe(100525);
+  it('has correct 2026 single brackets', () => {
+    expect(FEDERAL_TAX_BRACKETS_2026[0].max).toBe(12400);
+    expect(FEDERAL_TAX_BRACKETS_2026[1].max).toBe(50400);
+    expect(FEDERAL_TAX_BRACKETS_2026[2].max).toBe(105700);
   });
 
   it('brackets are continuous (no gaps)', () => {
-    for (let i = 1; i < FEDERAL_TAX_BRACKETS_2024.length; i++) {
-      expect(FEDERAL_TAX_BRACKETS_2024[i].min).toBe(FEDERAL_TAX_BRACKETS_2024[i - 1].max);
+    for (let i = 1; i < FEDERAL_TAX_BRACKETS_2026.length; i++) {
+      expect(FEDERAL_TAX_BRACKETS_2026[i].min).toBe(FEDERAL_TAX_BRACKETS_2026[i - 1].max);
     }
   });
 
   it('rates are increasing', () => {
-    for (let i = 1; i < FEDERAL_TAX_BRACKETS_2024.length; i++) {
-      expect(FEDERAL_TAX_BRACKETS_2024[i].rate).toBeGreaterThan(
-        FEDERAL_TAX_BRACKETS_2024[i - 1].rate
+    for (let i = 1; i < FEDERAL_TAX_BRACKETS_2026.length; i++) {
+      expect(FEDERAL_TAX_BRACKETS_2026[i].rate).toBeGreaterThan(
+        FEDERAL_TAX_BRACKETS_2026[i - 1].rate
       );
     }
   });
@@ -269,7 +269,7 @@ describe('Tax Year Versioning', () => {
   });
 
   it('isTaxDataStale returns true when current year exceeds TAX_YEAR', () => {
-    // Since TAX_YEAR is 2024 and current year is >= 2025, this should be true
+    // isTaxDataStale is true only once the calendar year passes TAX_YEAR (2026)
     const currentYear = new Date().getFullYear();
     if (currentYear > TAX_YEAR) {
       expect(isTaxDataStale()).toBe(true);

@@ -71,19 +71,19 @@ Each tool is a standalone HTML file containing embedded CSS and JavaScript. This
 
 Core logic is extracted into ES modules for testing:
 
-| Module                  | Purpose                                                     |
-| ----------------------- | ----------------------------------------------------------- |
-| `csv-utils.js`          | RFC 4180 CSV parsing                                        |
-| `parsing-utils.js`      | Amount/date parsing (Unicode, European format)              |
-| `categorization.js`     | Transaction categorization with confidence scoring          |
-| `transfer-detection.js` | Inter-account transfer matching                             |
-| `column-detection.js`   | Bank CSV column auto-detection                              |
-| `social-security.js`    | FRA, PIA, and benefit calculations                          |
-| `simulation.js`         | Monte Carlo simulation, RMD calculations, withdrawals       |
-| `statistics.js`         | Percentiles, histograms, mean/std dev                       |
-| `validation.js`         | Input validation, cross-field validation, schema validation |
-| `tax-parameters.js`     | 2024 tax brackets, SS params, state taxes, IRS limits       |
-| `ynab-budget.js`        | YNAB budget category → conscious-spending bucket mapping    |
+| Module                  | Purpose                                                        |
+| ----------------------- | -------------------------------------------------------------- |
+| `csv-utils.js`          | RFC 4180 CSV parsing                                           |
+| `parsing-utils.js`      | Amount/date parsing (Unicode, European format)                 |
+| `categorization.js`     | Transaction categorization with confidence scoring             |
+| `transfer-detection.js` | Inter-account transfer matching                                |
+| `column-detection.js`   | Bank CSV column auto-detection                                 |
+| `social-security.js`    | FRA, PIA, and benefit calculations                             |
+| `simulation.js`         | Monte Carlo simulation, RMD calculations, withdrawals          |
+| `statistics.js`         | Percentiles, histograms, mean/std dev                          |
+| `validation.js`         | Input validation, cross-field validation, schema validation    |
+| `tax-parameters.js`     | 2026 federal brackets, 2026 SS params, state taxes, IRS limits |
+| `ynab-budget.js`        | YNAB budget category → conscious-spending bucket mapping       |
 
 ### Test Suite (`tests/`)
 
@@ -129,7 +129,7 @@ Tools share data via localStorage:
 
 - Calculates Full Retirement Age based on birth year
 - Applies early/late claiming adjustments (reduction up to 30% early, 8%/year delayed credits)
-- Estimates PIA from income using 2024 bend points
+- Estimates PIA from income using 2026 bend points
 
 **`LifeEventsManager`**
 
