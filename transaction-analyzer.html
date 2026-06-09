@@ -1170,6 +1170,26 @@
         color: #991b1b;
       }
 
+      .ai-progress-label {
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .ai-progress-track {
+        height: 10px;
+        background: #bfdbfe;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .ai-progress-bar {
+        height: 100%;
+        width: 0;
+        background: #2563eb;
+        border-radius: 999px;
+        transition: width 0.3s ease;
+      }
+
       .provider-select {
         padding: 12px;
         border: 2px solid #e0e0e0;
@@ -5289,6 +5309,13 @@ Respond with ONLY a JSON array, no other text:
 
             let completedBatches = 0;
 
+            // Show the progress bar at 0% before the first batch completes
+            this.showAiStatus(
+              `Processing with AI... 0 of ${allBatches.length} batches complete`,
+              'processing',
+              0
+            );
+
             const processBatch = async (batchDescs) => {
               const batch = batchDescs.map((desc) => {
                 const representative = grouped[desc][0];
@@ -5332,8 +5359,9 @@ Respond with ONLY a JSON array, no other text:
 
               completedBatches++;
               this.showAiStatus(
-                `Processing with AI... ${completedBatches}/${allBatches.length} batches complete`,
-                'processing'
+                `Processing with AI... ${completedBatches} of ${allBatches.length} batches complete`,
+                'processing',
+                (completedBatches / allBatches.length) * 100
               );
 
               // Save progress after each batch so work isn't lost on rate limit or error
@@ -5716,10 +5744,27 @@ Respond with ONLY a JSON array, no other text:
           }
         }
 
-        showAiStatus(message, type) {
+        showAiStatus(message, type, progress) {
           const status = document.getElementById('aiStatus');
-          status.textContent = message;
           status.className = `ai-status show ${type}`;
+          // When a numeric progress (0-100) is supplied, render a progress bar
+          // instead of plain text so long AI runs show a filling bar.
+          if (typeof progress === 'number') {
+            const pct = Math.max(0, Math.min(100, Math.round(progress)));
+            status.innerHTML = `
+              <div class="ai-progress-label">${DOMUtils.escapeHtml(message)}</div>
+              <div
+                class="ai-progress-track"
+                role="progressbar"
+                aria-valuenow="${pct}"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <div class="ai-progress-bar" style="width: ${pct}%"></div>
+              </div>`;
+          } else {
+            status.textContent = message;
+          }
         }
       }
 
