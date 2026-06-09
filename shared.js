@@ -741,15 +741,17 @@ const SessionManager = {
             '• Transaction data and rules\n' +
             '• Retirement forecast settings\n' +
             '• API keys for AI categorization\n' +
+            '• YNAB personal access token\n' +
             '• All other saved preferences\n\n' +
             'This cannot be undone. Continue?'
         );
         if (confirmed) {
           this.clearSession();
-          // Also clear API keys from sessionStorage
+          // Also clear API keys and the YNAB token from sessionStorage
           ['gemini', 'openai', 'anthropic'].forEach((p) =>
             sessionStorage.removeItem(`apiKey_${p}`)
           );
+          sessionStorage.removeItem('ynabToken');
           this.showToast('All stored data cleared.', 'success');
           setTimeout(() => window.location.reload(), 1500);
         }
@@ -1129,8 +1131,8 @@ const StatusBar = {
 
             .status-refine-btn {
                 padding: 8px 16px;
-                background: #f59e0b;
-                color: white;
+                background: #fdba74;
+                color: #7c2d12;
                 border: none;
                 border-radius: 6px;
                 font-size: 0.9em;
@@ -1141,7 +1143,7 @@ const StatusBar = {
             }
 
             .status-refine-btn:hover {
-                background: #d97706;
+                background: #fcd34d;
             }
 
             @media (max-width: 768px) {

@@ -1170,6 +1170,26 @@
         color: #991b1b;
       }
 
+      .ai-progress-label {
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .ai-progress-track {
+        height: 10px;
+        background: #bfdbfe;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .ai-progress-bar {
+        height: 100%;
+        width: 0;
+        background: #2563eb;
+        border-radius: 999px;
+        transition: width 0.3s ease;
+      }
+
       .provider-select {
         padding: 12px;
         border: 2px solid #e0e0e0;
@@ -2115,9 +2135,9 @@
                 <strong>Token storage:</strong> Your personal access token is stored in
                 sessionStorage and is automatically cleared when you close the browser tab. It is
                 never written to disk or sent anywhere except to api.ynab.com.<br />
-                <strong>Data accessed:</strong> Budget names, category groups, category names, and
-                transactions (date, payee, amount, category). This is read-only access &mdash;
-                nothing in your YNAB budget is modified.<br />
+                <strong>Data accessed:</strong> Budget names, category groups, category names,
+                account names and types, and transactions (date, payee, amount, category). This is
+                read-only access &mdash; nothing in your YNAB budget is modified.<br />
                 <strong>No third parties:</strong> This is a client-side application. Your token and
                 financial data never leave your browser except for direct HTTPS calls to YNAB's
                 official API.
@@ -5057,6 +5077,32 @@ Return ONLY a JSON object (no markdown, no explanation):
           return null;
         }
 
+        // Is the given YNAB account a tracking (off-budget) account?
+        isYnabTrackingAccount(accountId) {
+          const account = this.ynabAccounts && this.ynabAccounts[accountId];
+          return !!account && account.on_budget === false && !account.deleted;
+        }
+
+        // Is the given YNAB account a regular on-budget account?
+        isYnabOnBudgetAccount(accountId) {
+          const account = this.ynabAccounts && this.ynabAccounts[accountId];
+          return !!account && account.on_budget === true;
+        }
+
+        // Classify a transfer into a tracking account as long- or short-term
+        // savings based on the destination account's name. Investment and
+        // retirement accounts are long-term; everything else is short-term.
+        classifyYnabTrackingTransfer(accountId) {
+          const account = (this.ynabAccounts && this.ynabAccounts[accountId]) || {};
+          const name = (account.name || '').toLowerCase();
+          if (
+            /invest|retire|401k|403b|\bira\b|roth|brokerage|pension|\bhsa\b|529|wealth/i.test(name)
+          ) {
+            return 'long-term';
+          }
+          return 'short-term';
+        }
+
         async fetchYnabTransactions() {
           const budgetId = document.getElementById('ynabBudgetSelect').value;
           if (!budgetId) {
@@ -5092,6 +5138,18 @@ Return ONLY a JSON object (no markdown, no explanation):
               return;
             }
 
+            // Fetch account metadata so we can distinguish tracking (off-budget)
+            // accounts from regular budget accounts. Transfers into tracking
+            // accounts are real savings/investment contributions, not internal
+            // transfers to exclude.
+            const accountsData = await this.ynabFetch(
+              `/budgets/${encodeURIComponent(budgetId)}/accounts`
+            );
+            this.ynabAccounts = {};
+            (accountsData.accounts || []).forEach((a) => {
+              this.ynabAccounts[a.id] = a;
+            });
+
             // Convert YNAB transactions to internal format
             // YNAB amounts are in "milliunits" (1000 = $1.00)
             const transactions = [];
@@ -5120,6 +5178,7 @@ Return ONLY a JSON object (no markdown, no explanation):
                 id: `ynab-${t.id}`,
                 sourceFile: 'YNAB',
                 ynabCategory: t.category_name || null,
+                ynabAccountId: t.account_id || null,
                 ynabAccountName: t.account_name || null,
                 ynabTransferAccountId: t.transfer_account_id || null,
                 ynabTransferTransactionId: t.transfer_transaction_id || null,
@@ -5137,19 +5196,36 @@ Return ONLY a JSON object (no markdown, no explanation):
             this.transactions = transactions;
             this.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            // Mark YNAB transfers using the API's transfer_account_id field
+            // Pass 1: a transfer from a budget account into a tracking
+            // (off-budget) account is a real savings/investment contribution,
+            // so categorize it as savings instead of excluding it as a transfer.
             this.transactions.forEach((t) => {
-              if (t.ynabTransferAccountId && !t.manuallyUnmarkedTransfer) {
-                t.isTransfer = true;
-                // Link matched transfer pairs
-                if (t.ynabTransferTransactionId) {
-                  const matchId = `ynab-${t.ynabTransferTransactionId}`;
-                  const match = this.transactions.find((tx) => tx.id === matchId);
-                  if (match) {
-                    t.transferMatch = match.id;
-                    match.transferMatch = t.id;
-                    match.isTransfer = true;
-                  }
+              if (!t.ynabTransferAccountId || t.manuallyUnmarkedTransfer) return;
+              if (
+                this.isYnabTrackingAccount(t.ynabTransferAccountId) &&
+                this.isYnabOnBudgetAccount(t.ynabAccountId)
+              ) {
+                t.category = this.classifyYnabTrackingTransfer(t.ynabTransferAccountId);
+                t.isTransfer = false;
+                t.ynabSavingsTransfer = true;
+              }
+            });
+
+            // Pass 2: mark remaining inter-account transfers (between budget
+            // accounts) using the API's transfer_account_id field.
+            this.transactions.forEach((t) => {
+              if (!t.ynabTransferAccountId || t.manuallyUnmarkedTransfer) return;
+              if (t.ynabSavingsTransfer) return; // already counted as savings
+
+              t.isTransfer = true;
+              // Link matched transfer pairs (skip the savings side so it stays counted)
+              if (t.ynabTransferTransactionId) {
+                const matchId = `ynab-${t.ynabTransferTransactionId}`;
+                const match = this.transactions.find((tx) => tx.id === matchId);
+                if (match && !match.ynabSavingsTransfer) {
+                  t.transferMatch = match.id;
+                  match.transferMatch = t.id;
+                  match.isTransfer = true;
                 }
               }
             });
@@ -5289,6 +5365,13 @@ Respond with ONLY a JSON array, no other text:
 
             let completedBatches = 0;
 
+            // Show the progress bar at 0% before the first batch completes
+            this.showAiStatus(
+              `Processing with AI... 0 of ${allBatches.length} batches complete`,
+              'processing',
+              0
+            );
+
             const processBatch = async (batchDescs) => {
               const batch = batchDescs.map((desc) => {
                 const representative = grouped[desc][0];
@@ -5332,8 +5415,9 @@ Respond with ONLY a JSON array, no other text:
 
               completedBatches++;
               this.showAiStatus(
-                `Processing with AI... ${completedBatches}/${allBatches.length} batches complete`,
-                'processing'
+                `Processing with AI... ${completedBatches} of ${allBatches.length} batches complete`,
+                'processing',
+                (completedBatches / allBatches.length) * 100
               );
 
               // Save progress after each batch so work isn't lost on rate limit or error
@@ -5716,10 +5800,27 @@ Respond with ONLY a JSON array, no other text:
           }
         }
 
-        showAiStatus(message, type) {
+        showAiStatus(message, type, progress) {
           const status = document.getElementById('aiStatus');
-          status.textContent = message;
           status.className = `ai-status show ${type}`;
+          // When a numeric progress (0-100) is supplied, render a progress bar
+          // instead of plain text so long AI runs show a filling bar.
+          if (typeof progress === 'number') {
+            const pct = Math.max(0, Math.min(100, Math.round(progress)));
+            status.innerHTML = `
+              <div class="ai-progress-label">${DOMUtils.escapeHtml(message)}</div>
+              <div
+                class="ai-progress-track"
+                role="progressbar"
+                aria-valuenow="${pct}"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <div class="ai-progress-bar" style="width: ${pct}%"></div>
+              </div>`;
+          } else {
+            status.textContent = message;
+          }
         }
       }
 

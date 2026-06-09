@@ -559,6 +559,13 @@
         margin-top: 12px;
       }
 
+      /* Softer caution for under-allocation (leftover money) */
+      .allocation-warning.under {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #b45309;
+      }
+
       .dollar-edit-input {
         width: 100px;
         padding: 4px 8px;
@@ -1343,8 +1350,19 @@
             0
           );
           const warningEl = document.getElementById('allocationWarning');
-          if (total > 100) {
-            warningEl.textContent = `Total allocation is ${Math.round(total)}% \u2014 exceeds 100% by ${Math.round(total - 100)}%. Please adjust your categories.`;
+          const rounded = Math.round(total);
+          if (rounded > 100) {
+            warningEl.className = 'allocation-warning';
+            warningEl.textContent = `Total allocation is ${rounded}% \u2014 exceeds 100% by ${rounded - 100}%. Please adjust your categories.`;
+            warningEl.style.display = 'block';
+          } else if (rounded < 100) {
+            const unallocatedPct = 100 - rounded;
+            const dollarNote =
+              this.monthlyNetIncome > 0
+                ? ` (${this.formatCurrency((this.monthlyNetIncome * unallocatedPct) / 100)}/month)`
+                : '';
+            warningEl.className = 'allocation-warning under';
+            warningEl.textContent = `Total allocation is ${rounded}% \u2014 ${unallocatedPct}%${dollarNote} is unallocated. Assign it to a category to put every dollar to work.`;
             warningEl.style.display = 'block';
           } else {
             warningEl.style.display = 'none';
