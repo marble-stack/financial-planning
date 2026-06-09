@@ -71,19 +71,19 @@ Each tool is a standalone HTML file containing embedded CSS and JavaScript. This
 
 Core logic is extracted into ES modules for testing:
 
-| Module                  | Purpose                                                     |
-| ----------------------- | ----------------------------------------------------------- |
-| `csv-utils.js`          | RFC 4180 CSV parsing                                        |
-| `parsing-utils.js`      | Amount/date parsing (Unicode, European format)              |
-| `categorization.js`     | Transaction categorization with confidence scoring          |
-| `transfer-detection.js` | Inter-account transfer matching                             |
-| `column-detection.js`   | Bank CSV column auto-detection                              |
-| `social-security.js`    | FRA, PIA, and benefit calculations                          |
-| `simulation.js`         | Monte Carlo simulation, RMD calculations, withdrawals       |
-| `statistics.js`         | Percentiles, histograms, mean/std dev                       |
-| `validation.js`         | Input validation, cross-field validation, schema validation |
-| `tax-parameters.js`     | 2024 tax brackets, SS params, state taxes, IRS limits       |
-| `ynab-budget.js`        | YNAB budget category → conscious-spending bucket mapping    |
+| Module                  | Purpose                                                        |
+| ----------------------- | -------------------------------------------------------------- |
+| `csv-utils.js`          | RFC 4180 CSV parsing                                           |
+| `parsing-utils.js`      | Amount/date parsing (Unicode, European format)                 |
+| `categorization.js`     | Transaction categorization with confidence scoring             |
+| `transfer-detection.js` | Inter-account transfer matching                                |
+| `column-detection.js`   | Bank CSV column auto-detection                                 |
+| `social-security.js`    | FRA, PIA, and benefit calculations                             |
+| `simulation.js`         | Monte Carlo simulation, RMD calculations, withdrawals          |
+| `statistics.js`         | Percentiles, histograms, mean/std dev                          |
+| `validation.js`         | Input validation, cross-field validation, schema validation    |
+| `tax-parameters.js`     | 2026 federal brackets, 2026 SS params, state taxes, IRS limits |
+| `ynab-budget.js`        | YNAB budget category → conscious-spending bucket mapping       |
 
 ### Test Suite (`tests/`)
 
@@ -129,7 +129,7 @@ Tools share data via localStorage:
 
 - Calculates Full Retirement Age based on birth year
 - Applies early/late claiming adjustments (reduction up to 30% early, 8%/year delayed credits)
-- Estimates PIA from income using 2024 bend points
+- Estimates PIA from income using 2026 bend points
 
 **`LifeEventsManager`**
 
@@ -144,7 +144,7 @@ Tools share data via localStorage:
 - YNAB direct import via API (personal access token)
 - Pattern-based auto-categorization before AI fallback
 - Transfer detection: heuristic matching (opposite amounts within 3 days with transfer keywords) plus YNAB `transfer_account_id` flag
-- YNAB tracking-account transfers: transfers from a budget account into a tracking (off-budget, `on_budget: false`) account are treated as savings contributions (long-term for investment/retirement-named accounts, short-term otherwise) rather than excluded as internal transfers; requires fetching `/budgets/{id}/accounts` to look up `on_budget`
+- YNAB tracking-account transfers: transfers from a budget account into a tracking (off-budget, `on_budget: false`) account are treated as savings contributions rather than excluded as internal transfers; requires fetching `/budgets/{id}/accounts` to look up `on_budget`. A mapping UI lets users tag each tracking account as short-term, long-term, or fixed-costs (loan/debt); choices are persisted per-budget in `ynabAccountMappings`. Suggested defaults: liability account types → fixed-costs, investment/retirement-named accounts → long-term, otherwise short-term
 - Categories align with income-allocation: fixed-costs, guilt-free, long-term, short-term, income
 
 ### Key Classes (income-allocation.html)
@@ -163,6 +163,7 @@ Tools share data via localStorage:
 | `spendingTrackerData`    | transaction-analyzer → retirement-simulator | Monthly spending/savings for retirement |
 | `transactionData`        | transaction-analyzer                        | Parsed transactions array               |
 | `transactionRules`       | transaction-analyzer                        | User-defined categorization rules       |
+| `ynabAccountMappings`    | transaction-analyzer                        | Tracking-account → category, per budget |
 | `retirementForecastData` | retirement-simulator                        | Simulation parameters                   |
 | `lifeEventsData`         | retirement-simulator                        | Life events array                       |
 | `lifeEventIdCounter`     | retirement-simulator                        | Counter for unique event IDs            |
