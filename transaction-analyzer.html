@@ -2468,6 +2468,63 @@
                   <tbody id="transfersTableBody"></tbody>
                 </table>
               </div>
+              <div
+                id="transfersPagination"
+                style="
+                  display: none;
+                  align-items: center;
+                  justify-content: space-between;
+                  flex-wrap: wrap;
+                  gap: 10px;
+                  margin-top: 12px;
+                  font-size: 0.9em;
+                  color: #666;
+                "
+              >
+                <span id="transfersPageInfo"></span>
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <button
+                    type="button"
+                    onclick="analyzer.changeTransferPage(-1)"
+                    id="transfersPrevBtn"
+                    style="
+                      padding: 6px 12px;
+                      border: 1px solid #d1d5db;
+                      border-radius: 4px;
+                      background: white;
+                      cursor: pointer;
+                    "
+                  >
+                    &#8592; Prev
+                  </button>
+                  <label for="transfersPageSelect" class="sr-only">Select page</label>
+                  <select
+                    id="transfersPageSelect"
+                    onchange="analyzer.goToTransferPage(this.value)"
+                    style="
+                      padding: 6px 10px;
+                      border: 1px solid #d1d5db;
+                      border-radius: 4px;
+                      background: white;
+                      cursor: pointer;
+                    "
+                  ></select>
+                  <button
+                    type="button"
+                    onclick="analyzer.changeTransferPage(1)"
+                    id="transfersNextBtn"
+                    style="
+                      padding: 6px 12px;
+                      border: 1px solid #d1d5db;
+                      border-radius: 4px;
+                      background: white;
+                      cursor: pointer;
+                    "
+                  >
+                    Next &#8594;
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -3851,7 +3908,17 @@ Return ONLY a JSON object (no markdown, no explanation):
           section.style.display = 'block';
           countEl.textContent = transfers.length;
 
-          tbody.innerHTML = transfers
+          // Paginate: show 25 rows at a time
+          const PER_PAGE = 25;
+          const totalPages = Math.ceil(transfers.length / PER_PAGE);
+          this.currentTransferPage = Math.min(
+            Math.max(1, this.currentTransferPage || 1),
+            totalPages
+          );
+          const startIdx = (this.currentTransferPage - 1) * PER_PAGE;
+          const pageTransfers = transfers.slice(startIdx, startIdx + PER_PAGE);
+
+          tbody.innerHTML = pageTransfers
             .map((t) => {
               const matchedTx = t.transferMatch
                 ? this.transactions.find((tx) => tx.id === t.transferMatch)
@@ -3876,6 +3943,53 @@ Return ONLY a JSON object (no markdown, no explanation):
                     `;
             })
             .join('');
+
+          this.updateTransfersPagination(transfers.length, totalPages, startIdx, PER_PAGE);
+        }
+
+        updateTransfersPagination(totalItems, totalPages, startIdx, perPage) {
+          const pagination = document.getElementById('transfersPagination');
+          const pageInfo = document.getElementById('transfersPageInfo');
+          const pageSelect = document.getElementById('transfersPageSelect');
+          const prevBtn = document.getElementById('transfersPrevBtn');
+          const nextBtn = document.getElementById('transfersNextBtn');
+
+          if (totalPages <= 1) {
+            pagination.style.display = 'none';
+            return;
+          }
+
+          pagination.style.display = 'flex';
+
+          const endIdx = Math.min(startIdx + perPage, totalItems);
+          pageInfo.textContent = `Showing ${startIdx + 1}–${endIdx} of ${totalItems} transfers`;
+
+          // Build the page-selector dropdown
+          let options = '';
+          for (let p = 1; p <= totalPages; p++) {
+            const rangeStart = (p - 1) * perPage + 1;
+            const rangeEnd = Math.min(p * perPage, totalItems);
+            const selected = p === this.currentTransferPage ? ' selected' : '';
+            options += `<option value="${p}"${selected}>Page ${p} of ${totalPages} (${rangeStart}–${rangeEnd})</option>`;
+          }
+          pageSelect.innerHTML = options;
+
+          prevBtn.disabled = this.currentTransferPage <= 1;
+          prevBtn.style.cursor = prevBtn.disabled ? 'not-allowed' : 'pointer';
+          prevBtn.style.background = prevBtn.disabled ? '#f5f5f5' : 'white';
+          nextBtn.disabled = this.currentTransferPage >= totalPages;
+          nextBtn.style.cursor = nextBtn.disabled ? 'not-allowed' : 'pointer';
+          nextBtn.style.background = nextBtn.disabled ? '#f5f5f5' : 'white';
+        }
+
+        changeTransferPage(delta) {
+          this.currentTransferPage = (this.currentTransferPage || 1) + delta;
+          this.updateTransfersTable();
+        }
+
+        goToTransferPage(page) {
+          this.currentTransferPage = parseInt(page, 10) || 1;
+          this.updateTransfersTable();
         }
 
         updateBulkCategorization() {
