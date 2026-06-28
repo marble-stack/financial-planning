@@ -124,22 +124,24 @@
         padding: 14px 16px;
         text-align: center;
         text-decoration: none;
-        color: rgba(255, 255, 255, 0.7);
-        font-weight: 500;
+        color: rgba(255, 255, 255, 0.75);
+        font-weight: 600;
         font-size: 0.95em;
-        border-bottom: 2px solid transparent;
+        letter-spacing: 0.02em;
+        border-bottom: 3px solid transparent;
         transition: all 0.2s;
         background: transparent;
       }
 
       .nav-tab:hover {
         color: rgba(255, 255, 255, 0.95);
+        border-bottom-color: rgba(255, 255, 255, 0.4);
       }
 
       .nav-tab.active {
         color: white;
         border-bottom-color: white;
-        font-weight: 600;
+        font-weight: 700;
       }
 
       /* Tool Cards */
@@ -451,12 +453,23 @@
         }
 
         .nav-tabs {
+          display: flex;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
           padding: 0 10px;
           gap: 4px;
         }
 
+        .nav-tabs::-webkit-scrollbar {
+          display: none;
+        }
+
         .nav-tab {
-          padding: 12px 8px;
+          flex: 0 0 auto;
+          white-space: nowrap;
+          padding: 12px 14px;
           font-size: 0.85em;
         }
 
@@ -482,6 +495,22 @@
 
         .cycle-step {
           padding: 15px;
+        }
+      }
+
+      /* Portrait phones: pin the beta-warning hazard icon to the left */
+      @media (max-width: 768px) and (orientation: portrait) {
+        .dev-warning {
+          display: flex;
+          align-items: flex-start;
+          text-align: left;
+          gap: 8px;
+        }
+
+        .dev-warning-icon {
+          margin-right: 0;
+          flex-shrink: 0;
+          line-height: 1.4;
         }
       }
     </style>
